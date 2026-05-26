@@ -125,6 +125,19 @@
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
   .day-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--surface2); border-radius: 99px; padding: 4px 12px; font-size: 13px; margin-bottom: 14px; }
+
+  .circuit-toggle { display: flex; align-items: center; gap: 6px; background: none; border: none; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--accent); cursor: pointer; padding: 6px 0 0; letter-spacing: 0.03em; }
+  .circuit-toggle svg { transition: transform 0.2s; }
+  .circuit-toggle.open svg { transform: rotate(180deg); }
+  .circuit-card { display: none; background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 8px; }
+  .circuit-card.open { display: block; }
+  .circuit-rounds { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent); margin-bottom: 8px; }
+  .circuit-row { display: flex; gap: 10px; align-items: baseline; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 13px; }
+  .circuit-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .circuit-num { font-weight: 500; color: var(--ink2); min-width: 16px; flex-shrink: 0; font-size: 12px; }
+  .circuit-ex { color: var(--ink); flex: 1; }
+  .circuit-reps { color: var(--ink3); font-size: 12px; white-space: nowrap; }
+  .circuit-rest { font-size: 12px; color: var(--ink3); margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.06); }
 </style>
 </head>
 <body>
@@ -532,17 +545,20 @@ function getMovementRecs() {
   if (morningMode === 'floor') {
     recs.push({
       text: 'Morning: floor circuit — 8 minutes, stay on the mat',
-      sub: 'Do these in order without standing up. (1) Lie on your back, hug both knees to chest, hold 60 seconds. (2) Roll to all fours, do 8 cat-cows: arch your back on the inhale, round it on the exhale. (3) Feet flat on the floor, push your hips straight up toward the ceiling, hold 2 seconds, lower slowly — 2 sets of 10. (4) Still on all fours, draw slow circles with each hip, 5 each direction. That is the complete session. You do not need to do anything else before your shower.'
+      sub: 'Do these in order without standing up. (1) Lie on your back, hug both knees to chest, hold 60 seconds. (2) Roll to all fours, do 8 cat-cows: arch your back on the inhale, round it on the exhale. (3) Feet flat on the floor, push your hips straight up toward the ceiling, hold 2 seconds, lower slowly — 2 sets of 10. (4) Still on all fours, draw slow circles with each hip, 5 each direction. That is the complete session. You do not need to do anything else before your shower.',
+      circuit: { rounds: 1, floor: true }
     });
   } else if (morningMode === 'standing_full') {
     recs.push({
       text: 'Morning: standing circuit — 3 rounds, 12–15 minutes',
-      sub: 'Your highest-capacity phase. Do each exercise in sequence, then rest 60 seconds before repeating. Round: (1) Squat ×10 — feet shoulder-width, push hips back, lower until thighs are parallel, drive through heels to stand. (2) Romanian deadlift ×8 — push hips back not down, back flat, feel the pull in your hamstrings, stand tall. (3) Reverse lunge ×6 each leg — step back, lower back knee toward floor, return to standing. (4) Wall push-up ×10 — hands flat on wall at shoulder height, bend elbows to bring chest to wall, push back. (5) Hip abduction ×10 each side — hand on wall, lift outer leg to the side 30–45 degrees, lower with control. (6) Calf raise ×12 — rise onto balls of both feet, hold 1 second, lower over 3 seconds. Add reps if you feel strong today.'
+      sub: 'Your highest-capacity phase. Do each exercise in sequence, then rest 60 seconds before repeating. Round: (1) Squat ×10 — feet shoulder-width, push hips back, lower until thighs are parallel, drive through heels to stand. (2) Romanian deadlift ×8 — push hips back not down, back flat, feel the pull in your hamstrings, stand tall. (3) Reverse lunge ×6 each leg — step back, lower back knee toward floor, return to standing. (4) Wall push-up ×10 — hands flat on wall at shoulder height, bend elbows to bring chest to wall, push back. (5) Hip abduction ×10 each side — hand on wall, lift outer leg to the side 30–45 degrees, lower with control. (6) Calf raise ×12 — rise onto balls of both feet, hold 1 second, lower over 3 seconds. Add reps if you feel strong today.',
+      circuit: { rounds: 3, floor: false }
     });
   } else {
     recs.push({
       text: 'Morning: standing circuit — 2 rounds, 10 minutes',
-      sub: 'Do each exercise in sequence, then rest 60 seconds before the second round. Round: (1) Squat ×10 — feet shoulder-width, push hips back, lower until thighs are parallel, drive through heels to stand. Hold a wall lightly if balance feels unsteady first thing. (2) Romanian deadlift ×8 — push hips back not down, back flat, feel the pull in your hamstrings, stand tall. (3) Reverse lunge ×6 each leg — step back, lower back knee toward floor, return to standing. (4) Wall push-up ×10 — hands flat on wall at shoulder height, bend elbows to bring chest to wall, push back. (5) Hip abduction ×10 each side — hand on wall, lift outer leg to the side 30–45 degrees, lower with control. (6) Calf raise ×12 — rise onto balls of both feet, hold 1 second, lower over 3 seconds.'
+      sub: 'Do each exercise in sequence, then rest 60 seconds before the second round. Round: (1) Squat ×10 — feet shoulder-width, push hips back, lower until thighs are parallel, drive through heels to stand. Hold a wall lightly if balance feels unsteady first thing. (2) Romanian deadlift ×8 — push hips back not down, back flat, feel the pull in your hamstrings, stand tall. (3) Reverse lunge ×6 each leg — step back, lower back knee toward floor, return to standing. (4) Wall push-up ×10 — hands flat on wall at shoulder height, bend elbows to bring chest to wall, push back. (5) Hip abduction ×10 each side — hand on wall, lift outer leg to the side 30–45 degrees, lower with control. (6) Calf raise ×12 — rise onto balls of both feet, hold 1 second, lower over 3 seconds.',
+      circuit: { rounds: 2, floor: false }
     });
   }
 
@@ -937,12 +953,58 @@ function buildRecs() {
   c.innerHTML = html; c.style.display = 'block';
 }
 
+// ── CIRCUIT REFERENCE CARD ────────────────────────────────────────────
+let circuitCardCount = 0;
+function getCircuitCard(circuit) {
+  const id = 'cc-' + (++circuitCardCount);
+  if (circuit.floor) {
+    return `
+      <button class="circuit-toggle" onclick="toggleCircuit('${id}',this)">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Show exercise list
+      </button>
+      <div class="circuit-card" id="${id}">
+        <div class="circuit-rounds">1 round — floor only</div>
+        <div class="circuit-row"><span class="circuit-num">1</span><span class="circuit-ex">Knees to chest</span><span class="circuit-reps">hold 60s</span></div>
+        <div class="circuit-row"><span class="circuit-num">2</span><span class="circuit-ex">Cat-cow</span><span class="circuit-reps">×8</span></div>
+        <div class="circuit-row"><span class="circuit-num">3</span><span class="circuit-ex">Glute bridge</span><span class="circuit-reps">2×10</span></div>
+        <div class="circuit-row"><span class="circuit-num">4</span><span class="circuit-ex">Hip circles</span><span class="circuit-reps">×5 each direction</span></div>
+      </div>`;
+  }
+  const rounds = circuit.rounds;
+  return `
+    <button class="circuit-toggle" onclick="toggleCircuit('${id}',this)">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Show exercise list
+    </button>
+    <div class="circuit-card" id="${id}">
+      <div class="circuit-rounds">${rounds} round${rounds > 1 ? 's' : ''} — standing</div>
+      <div class="circuit-row"><span class="circuit-num">1</span><span class="circuit-ex">Squat</span><span class="circuit-reps">×10</span></div>
+      <div class="circuit-row"><span class="circuit-num">2</span><span class="circuit-ex">Romanian deadlift</span><span class="circuit-reps">×8</span></div>
+      <div class="circuit-row"><span class="circuit-num">3</span><span class="circuit-ex">Reverse lunge</span><span class="circuit-reps">×6 each leg</span></div>
+      <div class="circuit-row"><span class="circuit-num">4</span><span class="circuit-ex">Wall push-up</span><span class="circuit-reps">×10</span></div>
+      <div class="circuit-row"><span class="circuit-num">5</span><span class="circuit-ex">Hip abduction</span><span class="circuit-reps">×10 each side</span></div>
+      <div class="circuit-row"><span class="circuit-num">6</span><span class="circuit-ex">Calf raise</span><span class="circuit-reps">×12</span></div>
+      ${rounds > 1 ? `<div class="circuit-rest">Rest 60 seconds between rounds</div>` : ''}
+    </div>`;
+}
+
+function toggleCircuit(id, btn) {
+  const card = document.getElementById(id);
+  const open = card.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.querySelector('span') && (btn.querySelector('span').textContent = open ? 'Hide exercise list' : 'Show exercise list');
+  // Update text node (button has svg + text node)
+  btn.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = open ? ' Hide exercise list' : ' Show exercise list'; });
+}
+
 function buildSection(title, icon, items, showSubs) {
   if (!items.length) return '';
+  circuitCardCount = 0;
   let html = `<div class="card rec-section"><div class="rec-header"><div class="rec-icon">${icon}</div><div class="rec-title">${title}</div></div>`;
   items.forEach(i => {
     const showThisSub = showSubs || i.isLink;
-    html += `<div class="rec-item"><div class="rec-dot"></div><div><div class="rec-text">${i.text}</div>${(showThisSub && i.sub) ? `<div class="rec-sub">${i.sub}</div>` : ''}</div></div>`;
+    html += `<div class="rec-item"><div class="rec-dot"></div><div style="width:100%"><div class="rec-text">${i.text}</div>${(showThisSub && i.sub) ? `<div class="rec-sub">${i.sub}</div>` : ''}${i.circuit ? getCircuitCard(i.circuit) : ''}</div></div>`;
   });
   return html + '</div>';
 }

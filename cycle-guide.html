@@ -187,14 +187,6 @@
         </div>
       </div>
 
-      <div class="q-block" id="not-monday-block">
-        <div class="q-label">Is today Monday?</div>
-        <div class="q-options">
-          <button class="q-opt" id="btn-mon-yes" onclick="setMonday(true)">Yes — gym/swim day</button>
-          <button class="q-opt" id="btn-mon-no" onclick="setMonday(false)">No</button>
-        </div>
-      </div>
-
       <div class="q-block" id="weekend-block" style="display:none;">
         <div class="q-label">How is today shaping up?</div>
         <div class="q-options" style="flex-direction:column; gap:8px;">
@@ -360,11 +352,11 @@ function init() {
   document.getElementById('today-date-2').textContent = str;
   const dow = d.getDay();
   if (dow === 1) {
-    setMonday(true);
+    state.isMonday = true;
+    document.getElementById('monday-block').style.display = 'block';
   } else if (dow === 0 || dow === 6) {
     state.isWeekend = true;
     document.getElementById('monday-block').style.display = 'none';
-    document.getElementById('not-monday-block').style.display = 'none';
     document.getElementById('weekend-block').style.display = 'block';
   }
 }
@@ -397,23 +389,6 @@ function adjustDay(delta) {
 }
 
 // ── MONDAY ───────────────────────────────────────────────────────────
-function setMonday(val) {
-  state.isMonday = val;
-  if (val) {
-    document.getElementById('monday-block').style.display = 'block';
-    document.getElementById('not-monday-block').style.display = 'none';
-    document.getElementById('btn-mon-yes').classList.add('selected');
-    document.getElementById('btn-mon-no').classList.remove('selected');
-  } else {
-    document.getElementById('monday-block').style.display = 'none';
-    document.getElementById('not-monday-block').style.display = 'block';
-    document.getElementById('btn-mon-yes').classList.remove('selected');
-    document.getElementById('btn-mon-no').classList.add('selected');
-    state.mondaySession = null;
-  }
-  checkNext1();
-}
-
 function selectSession(type) {
   state.mondaySession = type;
   document.getElementById('card-swim').className = 'session-card' + (type==='swim' ? ' selected-swim' : '');
@@ -425,7 +400,6 @@ function selectWeekend(mode, el) {
   state.weekendMode = mode;
   document.getElementById('weekend-block').querySelectorAll('.q-opt').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
-  // Show walk question only on active days
   const walkBlock = document.getElementById('weekend-walk-block');
   if (walkBlock) walkBlock.style.display = mode === 'active' ? 'block' : 'none';
   if (mode === 'recovery') state.weekendWalk = 'none';
@@ -435,12 +409,11 @@ function selectWeekend(mode, el) {
 // ── VALIDATION ───────────────────────────────────────────────────────
 function checkNext1() {
   if (state.isWeekend) {
-    const weekendOk = state.weekendMode !== null;
-    document.getElementById('btn-next-1').disabled = !(state.cycleDay && weekendOk);
+    document.getElementById('btn-next-1').disabled = !(state.cycleDay && state.weekendMode !== null);
+  } else if (state.isMonday) {
+    document.getElementById('btn-next-1').disabled = !(state.cycleDay && state.mondaySession !== null);
   } else {
-    const mondayOk = !state.isMonday || (state.isMonday && state.mondaySession !== null);
-    const notMondayOk = state.isMonday || (!state.isMonday && document.getElementById('btn-mon-no').classList.contains('selected'));
-    document.getElementById('btn-next-1').disabled = !(state.cycleDay && (mondayOk || notMondayOk));
+    document.getElementById('btn-next-1').disabled = !state.cycleDay;
   }
 }
 
@@ -1025,7 +998,6 @@ function startOver() {
   document.getElementById('screen-3').classList.remove('active');
   document.getElementById('screen-1').classList.add('active');
   document.getElementById('monday-block').style.display = 'none';
-  document.getElementById('not-monday-block').style.display = 'block';
   document.getElementById('weekend-block').style.display = 'none';
   const wwb = document.getElementById('weekend-walk-block');
   if (wwb) wwb.style.display = 'none';

@@ -474,7 +474,7 @@ function getMovementRecs() {
 
   // 1. Morning movement — always first
   if (depleted || isVulnerable) {
-    recs.push({ text: 'Morning: 8 min floor mobility only', sub: 'Cat-cow, hip circles, gentle glute bridge. No loading today — movement as nervous system regulation, not exercise.' });
+    recs.push({ text: 'Morning: 8 min floor mobility only', sub: 'On the floor: cat-cow 8 reps, hip circles 5 each direction, glute bridge 10 reps. No standing loaded exercises today. Moving gently in the morning reduces physical tension that builds overnight and makes the rest of the day harder.' });
   } else if (isHighCap) {
     recs.push({ text: 'Morning: full activation routine, 12–15 min', sub: 'Squats 2×10, hip hinge 2×8, push-ups 2×10, balance holds 30s each side. Add reps if you feel strong.' });
   } else if (isProtect) {
@@ -521,11 +521,11 @@ function getMovementRecs() {
 
   // 4. Evening movement — always last
   if (depleted || isProtect) {
-    recs.push({ text: 'Evening (8pm): stretching and parasympathetic reset', sub: 'Supine hip stretch 2 min each side, child\'s pose, legs up the wall 5 min. No resistance tonight.' });
+    recs.push({ text: 'Evening (8pm): floor stretches, 10–15 min', sub: 'Lie on your back. Hip stretch: pull one knee to chest, hold 2 min each side. Then legs up the wall for 5 min — shuffle your hips close to the wall, legs resting vertically. This is enough. No standing, no effort, phone away.' });
   } else if (isHighCap) {
     recs.push({ text: 'Evening (8pm): light resistance bands', sub: 'Band pull-aparts 2×15, banded side steps 2×12, slow bodyweight squats 2×8 (3-second descent). Finish by 8:20.' });
   } else {
-    recs.push({ text: 'Evening (8pm): gentle bands or full stretch', sub: 'Low heart rate throughout. Finish by 8:20 — leaves 90 min before sleep.' });
+    recs.push({ text: 'Evening (8pm): bands or floor stretches, 10–15 min', sub: 'Keep it slow. If using bands: pull-aparts 2×15, side steps 2×12. If stretching: hip stretch 2 min each side, legs up the wall 5 min. Either is fine — choose whichever requires less decision-making right now. Finish by 8:20.' });
   }
 
   return recs;
@@ -544,7 +544,7 @@ function getFoodRecs() {
   }
 
   if (isProtect || state.mood === 'irritable' || state.mood === 'anxious') {
-    recs.push({ text: 'Don\'t go more than 4 hours between meals today', sub: 'Blood sugar dips amplify irritability and anxiety. Protein + fat with every carb source.' });
+    recs.push({ text: 'Don\'t go more than 4 hours between meals today', sub: 'Set a phone reminder for lunchtime if you tend to push through. A drop in blood sugar right now will make irritability or anxiety noticeably worse within 20–30 minutes — eating something with protein before that happens is faster-acting than any other intervention available to you.' });
     recs.push({ text: 'Lunch: bagel + protein side — not the bagel alone', sub: 'Edamame, eggs, hummus, or smoked salmon alongside. The protein slows glucose absorption and sustains energy.' });
   } else {
     recs.push({ text: 'Lunch: your usual structure', sub: 'Bagel + protein side + veg. Consistent structure reduces decision fatigue.' });
@@ -562,8 +562,8 @@ function getHydrationRecs() {
 
   // Morning target
   recs.push({
-    text: 'Morning: 500ml before or with breakfast',
-    sub: 'Water first, before coffee. Front-loading is the most effective hydration habit — sets your baseline for the day. Add another 200–300ml with or after your morning coffee.'
+    text: 'Morning: drink 500ml of water before or with breakfast',
+    sub: 'Fill a glass or bottle the night before and leave it somewhere you\'ll see it — next to the kettle or by your toothbrush. Drink it before you make coffee. Add another 200–300ml with or after your morning coffee.'
   });
 
   // Session hydration if Monday
@@ -579,7 +579,7 @@ function getHydrationRecs() {
   // Lunchtime refill
   recs.push({
     text: 'Lunchtime: refill your bottle — aim for 400–500ml through the afternoon',
-    sub: 'Tie it to your post-lunch walk. Afternoon hydration supports cognitive performance and reduces the 3pm energy dip — often mistaken for hunger or fatigue.'
+    sub: 'Refill it as you sit down to eat, so it\'s ready for the afternoon. If you feel the 3pm energy dip, drink a full glass before reaching for coffee or food — it\'s frequently dehydration, not hunger or tiredness.'
   });
 
   // Phase-specific note
@@ -614,27 +614,57 @@ function getRecoveryRecs() {
   const p = state.phase;
   const recs = [];
 
+  // Sleep — specific actions not vague intentions
   if (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF') {
-    recs.push({ text: 'Sleep is the most important intervention today', sub: 'Consistent wind-down, cool room, low stimulation after 8pm. Sleep debt in this phase directly drives your days 5–7 mood dip.' });
+    recs.push({
+      text: 'Be in bed by 10pm tonight',
+      sub: 'Set an alarm for 9:15pm as your wind-down start. Cool the bedroom before you go in. No screens after 9:30pm — put your phone in another room or use a physical alarm. Sleep debt right now directly affects how you feel on days 5–7.'
+    });
   } else {
-    recs.push({ text: 'Maintain consistent sleep and wake time', sub: 'Within 1 hour of your weekday time, even on weekends. Rhythm protection compounds over the cycle.' });
+    recs.push({
+      text: 'Aim for the same bedtime as yesterday, within 30 minutes',
+      sub: 'Consistent timing matters more than total hours. If you went to bed at 10:30pm last night, aim for 10–11pm tonight. Set a phone alarm or reminder at 9:15pm labelled "start winding down" if that helps.'
+    });
   }
 
+  // High load day — concrete actions replacing "protect transitions"
   if (state.load === 'high') {
-    recs.push({ text: 'High-load day: protect your transitions', sub: 'Brief decompression between work and home matters. Even 5 min in the car before going inside counts as a nervous system buffer.' });
+    recs.push({
+      text: 'Before you go inside after work: sit in the car for 5 minutes',
+      sub: 'Engine off, phone down. Do nothing. This is a deliberate buffer between work-mode and home-mode — it reduces the carryover of work stress into the evening and lowers the demand on your masking effort at home.'
+    });
+    recs.push({
+      text: 'After the school run / bedtime: do not start a new task for 20 minutes',
+      sub: 'Sit down, low light, something low-input — a podcast, tea, silence. This is recovery time, not wasted time. High-masking days require this as maintenance, not as a reward.'
+    });
   }
 
+  // Anxiety — specific technique replacing "deploy CBT toolkit"
   if (state.mood === 'anxious') {
-    recs.push({ text: 'Anxious today: deploy your CBT toolkit proactively, not reactively', sub: 'Your skills are a genuine evidence-based protective factor. The hormonal component responds to the same tools — just earlier.' });
-    recs.push({ text: 'Physiological sigh if escalating', sub: 'Double inhale through nose, long exhale through mouth. One of the fastest evidence-backed ways to reduce acute autonomic arousal.' });
+    recs.push({
+      text: 'If anxiety spikes: breathe out for longer than you breathe in',
+      sub: 'Breathe in for 4 counts, out for 6–8 counts. Repeat 5 times. This directly activates the vagus nerve and slows heart rate — it works within 60–90 seconds. Use it before a meeting, in the car, or whenever you feel it building.'
+    });
+    recs.push({
+      text: 'Use your CBT tools now, not after you\'re overwhelmed',
+      sub: 'The hormonal component of anxiety today (days 5–7 / luteal phase) responds to the same techniques you already use for GAD — the difference is that waiting until you\'re overwhelmed makes them less effective. Notice the first sign of escalation and intervene then.'
+    });
   }
 
+  // Days 5–7 with low mood — concrete reframe
   if (p === 'earlyF_vulnerable' && (state.mood === 'low' || state.mood === 'anxious')) {
-    recs.push({ text: 'Reminder: days 5–7 are your documented worst window', sub: 'This will shift. Don\'t make permanent assessments from a temporary physiological state. Track it in Clue — it becomes easier to hold when you can see the pattern.' });
+    recs.push({
+      text: 'Don\'t make any decisions about your life today that you can defer',
+      sub: 'Your brain is generating negative assessments right now that it won\'t generate in 4–5 days. This is not intuition — it\'s a predictable hormonal effect on mood. Check your Clue data: if this pattern repeats each cycle, that\'s the evidence. Write things down to revisit on day 10 instead of acting on them now.'
+    });
   }
 
+  // Sensory recovery — specific not vague
   if (state.load === 'high' || p === 'luteal' || p === 'earlyF_vulnerable') {
-    recs.push({ text: 'Sensory decompression this evening', sub: 'Quiet, low light, predictable routine. Physiological need, not a luxury — treat it with the same priority as nutrition.' });
+    recs.push({
+      text: 'After 8pm: remove one source of sensory input you don\'t need',
+      sub: 'Pick one: turn off background TV, switch to a lamp instead of overhead light, change into comfortable clothes if you haven\'t already, move to a quieter room. You don\'t need to do all of them — one deliberate reduction is enough to signal the nervous system to downregulate.'
+    });
   }
 
   return recs;

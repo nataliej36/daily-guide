@@ -182,6 +182,14 @@
         </div>
       </div>
 
+      <div class="q-block" id="weekend-block" style="display:none;">
+        <div class="q-label">How is today shaping up?</div>
+        <div class="q-options" style="flex-direction:column; gap:8px;">
+          <button class="q-opt" onclick="selectWeekend('active',this)">Active day — a longer walk is on</button>
+          <button class="q-opt" onclick="selectWeekend('recovery',this)">Recovery day — keeping it gentle</button>
+        </div>
+      </div>
+
       <button class="btn-primary" id="btn-next-1" onclick="goToScreen2()" disabled>Continue</button>
     </div>
   </div>
@@ -235,6 +243,24 @@
           <button class="q-opt" onclick="selectQ('load','high',this)">High — demanding day</button>
           <button class="q-opt" onclick="selectQ('load','medium',this)">Medium — normal</button>
           <button class="q-opt" onclick="selectQ('load','low',this)">Low — lighter than usual</button>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label">Morning routine — while still in bed, decide now</div>
+        <div class="q-sub">Pick one. Both are valid. This sets your morning movement.</div>
+        <div class="q-options" style="flex-direction:column; gap:10px;">
+          <button class="q-opt" onclick="selectQ('body','standing',this)">Standing circuit — I'm getting up to move</button>
+          <button class="q-opt" onclick="selectQ('body','floor',this)">Floor session — I'm staying down for now</button>
+        </div>
+      </div>
+
+      <div class="q-block" id="weekend-walk-block" style="display:none;">
+        <div class="q-label">The longer walk today — what's the plan?</div>
+        <div class="q-options" style="flex-direction:column; gap:8px;">
+          <button class="q-opt" onclick="selectQ('weekendWalk','solo',this)">Solo — going out on my own</button>
+          <button class="q-opt" onclick="selectQ('weekendWalk','child',this)">With my child — walking together</button>
+          <button class="q-opt" onclick="selectQ('weekendWalk','none',this)">Not today — recovery day</button>
         </div>
       </div>
 
@@ -304,21 +330,29 @@ const state = {
   cycleDay: null,
   phase: null,
   isMonday: false,
-  mondaySession: null, // 'swim' | 'gym' | null
-  energy: null, sleep: null, mood: null, load: null
+  isWeekend: false,
+  weekendMode: null,   // 'active' | 'recovery'
+  weekendWalk: null,   // 'solo' | 'child' | 'none'
+  mondaySession: null,
+  energy: null, sleep: null, mood: null, load: null, body: null
 };
 
 // ── INIT ─────────────────────────────────────────────────────────────
 function init() {
   const d = new Date();
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const str = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()];
+  const str = dayNames[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()];
   document.getElementById('today-date').textContent = str;
   document.getElementById('today-date-2').textContent = str;
-  const isMonday = d.getDay() === 1;
-  if (isMonday) {
+  const dow = d.getDay();
+  if (dow === 1) {
     setMonday(true);
+  } else if (dow === 0 || dow === 6) {
+    state.isWeekend = true;
+    document.getElementById('monday-block').style.display = 'none';
+    document.getElementById('not-monday-block').style.display = 'none';
+    document.getElementById('weekend-block').style.display = 'block';
   }
 }
 init();
@@ -374,15 +408,33 @@ function selectSession(type) {
   checkNext1();
 }
 
+function selectWeekend(mode, el) {
+  state.weekendMode = mode;
+  document.getElementById('weekend-block').querySelectorAll('.q-opt').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  // Show walk question only on active days
+  const walkBlock = document.getElementById('weekend-walk-block');
+  if (walkBlock) walkBlock.style.display = mode === 'active' ? 'block' : 'none';
+  if (mode === 'recovery') state.weekendWalk = 'none';
+  checkNext1();
+}
+
 // ── VALIDATION ───────────────────────────────────────────────────────
 function checkNext1() {
-  const mondayOk = !state.isMonday || (state.isMonday && state.mondaySession !== null);
-  const notMondayOk = state.isMonday || (!state.isMonday && document.getElementById('btn-mon-no').classList.contains('selected'));
-  document.getElementById('btn-next-1').disabled = !(state.cycleDay && (mondayOk || notMondayOk));
+  if (state.isWeekend) {
+    const weekendOk = state.weekendMode !== null;
+    document.getElementById('btn-next-1').disabled = !(state.cycleDay && weekendOk);
+  } else {
+    const mondayOk = !state.isMonday || (state.isMonday && state.mondaySession !== null);
+    const notMondayOk = state.isMonday || (!state.isMonday && document.getElementById('btn-mon-no').classList.contains('selected'));
+    document.getElementById('btn-next-1').disabled = !(state.cycleDay && (mondayOk || notMondayOk));
+  }
 }
 
 function checkNext2() {
-  document.getElementById('btn-next-2').disabled = !(state.energy && state.sleep && state.mood && state.load);
+  const baseOk = state.energy && state.sleep && state.mood && state.load && state.body;
+  const weekendWalkOk = !state.isWeekend || state.weekendMode === 'recovery' || state.weekendWalk !== null;
+  document.getElementById('btn-next-2').disabled = !(baseOk && weekendWalkOk);
 }
 
 function selectQ(key, val, el) {
@@ -400,6 +452,10 @@ function goToScreen1() {
 function goToScreen2() {
   document.getElementById('screen-1').classList.remove('active');
   document.getElementById('screen-2').classList.add('active');
+  const walkBlock = document.getElementById('weekend-walk-block');
+  if (walkBlock) {
+    walkBlock.style.display = (state.isWeekend && state.weekendMode === 'active') ? 'block' : 'none';
+  }
 }
 function goToScreen3() {
   document.getElementById('screen-2').classList.remove('active');
@@ -467,66 +523,157 @@ const phaseInfo = {
 function getMovementRecs() {
   const p = state.phase;
   const depleted = (state.energy === 'low' || state.sleep === 'poor');
-  const recs = [];
-  const isVulnerable = (p === 'earlyF_vulnerable');
   const isHighCap = (p === 'midF');
   const isProtect = (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF');
+  const morningMode = getMorningMode();
+  const recs = [];
 
-  // 1. Morning movement — always first
-  if (depleted || isVulnerable) {
-    recs.push({ text: 'Morning: 8 min floor mobility only', sub: 'On the floor: cat-cow 8 reps, hip circles 5 each direction, glute bridge 10 reps. No standing loaded exercises today. Moving gently in the morning reduces physical tension that builds overnight and makes the rest of the day harder.' });
-  } else if (isHighCap) {
-    recs.push({ text: 'Morning: full activation routine, 12–15 min', sub: 'Squats 2×10, hip hinge 2×8, push-ups 2×10, balance holds 30s each side. Add reps if you feel strong.' });
-  } else if (isProtect) {
-    recs.push({ text: 'Morning: gentle mobility, 10 min', sub: 'Floor-based. Hip circles, cat-cow, glute bridge 2×10. No loaded squats today.' });
+  // ── 1. MORNING ──────────────────────────────────────────────────────
+  if (morningMode === 'floor') {
+    recs.push({
+      text: 'Morning: floor circuit — 8 minutes, stay on the mat',
+      sub: 'Do these in order without standing up. (1) Lie on your back, hug both knees to chest, hold 60 seconds. (2) Roll to all fours, do 8 cat-cows: arch your back on the inhale, round it on the exhale. (3) Feet flat on the floor, push your hips straight up toward the ceiling, hold 2 seconds, lower slowly — 2 sets of 10. (4) Still on all fours, draw slow circles with each hip, 5 each direction. That is the complete session. You do not need to do anything else before your shower.'
+    });
+  } else if (morningMode === 'standing_full') {
+    recs.push({
+      text: 'Morning: standing circuit — 3 rounds, 12–15 minutes',
+      sub: 'Your highest-capacity phase. Do each exercise in sequence, then rest 60 seconds before repeating. Round: (1) Squat ×10 — feet shoulder-width, push hips back, lower until thighs are parallel, drive through heels to stand. (2) Romanian deadlift ×8 — push hips back not down, back flat, feel the pull in your hamstrings, stand tall. (3) Reverse lunge ×6 each leg — step back, lower back knee toward floor, return to standing. (4) Wall push-up ×10 — hands flat on wall at shoulder height, bend elbows to bring chest to wall, push back. (5) Hip abduction ×10 each side — hand on wall, lift outer leg to the side 30–45 degrees, lower with control. (6) Calf raise ×12 — rise onto balls of both feet, hold 1 second, lower over 3 seconds. Add reps if you feel strong today.'
+    });
   } else {
-    recs.push({ text: 'Morning: activation routine, 10–12 min', sub: 'Squats 2×10, wall push-ups 2×10, glute bridge 2×12, balance holds.' });
+    recs.push({
+      text: 'Morning: standing circuit — 2 rounds, 10 minutes',
+      sub: 'Do each exercise in sequence, then rest 60 seconds before the second round. Round: (1) Squat ×10 — feet shoulder-width, push hips back, lower until thighs are parallel, drive through heels to stand. Hold a wall lightly if balance feels unsteady first thing. (2) Romanian deadlift ×8 — push hips back not down, back flat, feel the pull in your hamstrings, stand tall. (3) Reverse lunge ×6 each leg — step back, lower back knee toward floor, return to standing. (4) Wall push-up ×10 — hands flat on wall at shoulder height, bend elbows to bring chest to wall, push back. (5) Hip abduction ×10 each side — hand on wall, lift outer leg to the side 30–45 degrees, lower with control. (6) Calf raise ×12 — rise onto balls of both feet, hold 1 second, lower over 3 seconds.'
+    });
   }
 
-  // 2. Lunchtime walk — always second
-  if (depleted || isVulnerable) {
-    recs.push({ text: 'Lunchtime: 10 min walk, flat and gentle', sub: 'Even a short walk significantly blunts the post-meal glucose rise. Don\'t skip entirely.' });
+  // ── 2. LUNCHTIME / DAYTIME MOVEMENT ─────────────────────────────────
+  if (state.isWeekend) {
+    if (state.weekendMode === 'recovery') {
+      recs.push({
+        text: 'Today: gentle incidental movement only',
+        sub: 'No structured walk needed on a recovery day. Normal movement with your child — playing, going out briefly — is enough. Your 7000-step weekend baseline is already cardio-sufficient. Rest is the intervention today.'
+      });
+    } else if (state.weekendWalk === 'solo') {
+      const p = state.phase;
+      const isHighCap = (p === 'midF');
+      const isProtect = (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF');
+      if (isHighCap && !depleted) {
+        recs.push({
+          text: 'Weekend walk: push it today — 45–60 min, varied pace',
+          sub: 'Your highest-capacity phase and you\'re going solo. Walk briskly for the first 20 min, then vary your pace — find a hill if there is one. This is the window where cardiovascular effort converts most effectively. Aim for 8000–10000 steps total today.'
+        });
+      } else if (isProtect || depleted) {
+        recs.push({
+          text: 'Weekend walk: 30–40 min at a comfortable pace',
+          sub: 'Solo means you set the pace entirely. Walk at whatever speed feels okay — no benchmark to hit. The movement itself is the point. Avoid routes with heavy sensory load (busy roads, crowds) if your load score is high today.'
+        });
+      } else {
+        recs.push({
+          text: 'Weekend walk: 40–50 min, moderate pace',
+          sub: 'A good opportunity for an unstructured longer walk. Aim for roughly 6000–8000 steps. No need to track actively — just walk until you feel like turning back.'
+        });
+      }
+    } else if (state.weekendWalk === 'child') {
+      recs.push({
+        text: 'Weekend walk: child\'s pace — let duration be the target, not speed',
+        sub: 'Walking with a young child means unpredictable pace and frequent stops. That\'s fine — the total movement accumulates. Aim for 45–60 min out, which at a child\'s pace typically lands around 5000–7000 steps. Treat any frustration about pace as a signal to lower your expectations of the walk, not to push the child.'
+      });
+      if (!depleted && state.phase !== 'earlyF_vulnerable') {
+        recs.push({
+          text: 'If you get a solo window later: add 15–20 min brisk walking',
+          sub: 'Even a short solo walk at a proper pace — after naptime, during quiet play — meaningfully tops up the cardiovascular stimulus a child-paced walk can\'t fully provide.'
+        });
+      }
+    }
+  } else if (depleted || p === 'earlyF_vulnerable') {
+    recs.push({
+      text: 'Lunchtime: 10 min walk, flat route',
+      sub: 'Even 10 min significantly reduces the post-meal glucose rise. Go at whatever pace you like — the movement is what matters, not the pace.'
+    });
   } else {
-    recs.push({ text: 'Lunchtime: 15–20 min post-lunch walk', sub: 'Your most evidence-backed daily habit. Brisk if energy allows, gentle otherwise.' });
+    recs.push({
+      text: 'Lunchtime: 15–20 min brisk walk',
+      sub: 'Your most evidence-backed daily habit. Leave your phone in your pocket for the first 10 min if you can — the cognitive break compounds the physical benefit.'
+    });
   }
 
-  // 3. Monday gym/swim — third, only on Mondays
-  if (state.isMonday && state.mondaySession) {
+  // ── 3. MONDAY SESSION (gym/swim) — weekdays only ─────────────────────
+  if (!state.isWeekend && state.isMonday && state.mondaySession) {
     if (state.mondaySession === 'swim') {
       if (depleted && isProtect) {
-        recs.push({ text: 'Evening swim: restorative — easy continuous lengths only', sub: '20–25 min. No intervals. If you feel worse after 10 min, end early — that\'s a valid choice. The parasympathetic benefit is the goal.' });
+        recs.push({ text: 'Evening swim: restorative only', sub: 'Easy continuous lengths, 20–25 min. No intervals. If you feel worse after 10 min, get out — that\'s a valid decision. The rhythm and breathing is the point today, not the distance.' });
       } else if (isHighCap && !depleted) {
-        recs.push({ text: 'Evening swim: push session — intervals today', sub: '4×50m at pace with easy recovery lengths. 35–45 min total. This is when effort pays off most — your estrogen is high.' });
+        recs.push({ text: 'Evening swim: push session', sub: '4×50m at pace with easy recovery lengths between. 35–45 min total. Your estrogen is high — this is when effort converts to fitness most effectively.' });
       } else if (isProtect) {
-        recs.push({ text: 'Evening swim: steady restorative session', sub: 'Continuous easy pace, 25–30 min. Focus on rhythm and breathing — the calm after matters more than the distance.' });
+        recs.push({ text: 'Evening swim: steady restorative', sub: 'Continuous easy pace, 25–30 min. Finish feeling calmer than you arrived.' });
       } else {
-        recs.push({ text: 'Evening swim: moderate steady session', sub: '30–35 min continuous. Finish feeling better than you started — that\'s the benchmark.' });
+        recs.push({ text: 'Evening swim: moderate session', sub: '30–35 min continuous. Benchmark: you should feel better leaving than arriving.' });
       }
     } else {
-      // Gym incline treadmill
-      if (depleted || isVulnerable) {
-        recs.push({ text: 'Evening gym: incline walk — recovery protocol', sub: 'Treadmill: 3–5% incline, 3.0–3.2 mph, 25 min. HR below 120 bpm. Movement-as-medicine today, not a cardio session.' });
+      if (depleted || p === 'earlyF_vulnerable') {
+        recs.push({ text: 'Evening gym: incline walk — recovery', sub: 'Treadmill: 3–5% incline, 3.0–3.2 mph, 25 min. HR below 120 bpm. Movement as medicine today — not a fitness session.' });
       } else if (p === 'luteal') {
-        recs.push({ text: 'Evening gym: incline walk — moderate protocol', sub: 'Treadmill: 6–8% incline, 3.2–3.5 mph, 30 min. Keep HR in the 120–135 range. Steady state, no steep incline spikes.' });
+        recs.push({ text: 'Evening gym: incline walk — moderate', sub: 'Treadmill: 6–8% incline, 3.2–3.5 mph, 30 min. HR 120–135. Steady state only — no incline spikes.' });
       } else if (p === 'menstrual' || p === 'earlyF') {
-        recs.push({ text: 'Evening gym: incline walk — building protocol', sub: 'Treadmill: 8–10% incline, 3.3–3.6 mph, 30–35 min. HR 130–145. Energy returning — you can push a little more today.' });
+        recs.push({ text: 'Evening gym: incline walk — building', sub: 'Treadmill: 8–10% incline, 3.3–3.6 mph, 30–35 min. HR 130–145. Energy returning — you can push a little more today.' });
       } else if (isHighCap) {
-        recs.push({ text: 'Evening gym: incline walk — push protocol', sub: 'Treadmill: 10–12% incline, 3.5–3.8 mph, 35–40 min. HR 140–155. Peak-capacity window — the right time to work harder. Add brief 15–18% incline spikes if it feels good.' });
+        recs.push({ text: 'Evening gym: incline walk — push', sub: 'Treadmill: 10–12% incline, 3.5–3.8 mph, 35–40 min. HR 140–155. Add 15–18% incline spikes for 30s if it feels good. Peak window.' });
       } else {
-        recs.push({ text: 'Evening gym: incline walk — standard protocol', sub: 'Treadmill: 8–10% incline, 3.3–3.5 mph, 30–35 min. HR 130–145.' });
+        recs.push({ text: 'Evening gym: incline walk — standard', sub: 'Treadmill: 8–10% incline, 3.3–3.5 mph, 30–35 min. HR 130–145.' });
       }
-      recs.push({ text: 'Before leaving the gym: 2×10 bodyweight squats', sub: 'Takes 3 min. Adds the weight-bearing bone stimulus the incline walk alone doesn\'t provide.' });
+      recs.push({ text: 'Before leaving: 2×10 bodyweight squats', sub: 'Takes 3 min. Adds the bone-loading stimulus the treadmill doesn\'t provide.' });
     }
   }
 
-  // 4. Evening movement — always last
-  if (depleted || isProtect) {
-    recs.push({ text: 'Evening (8pm): floor stretches, 10–15 min', sub: 'Lie on your back. Hip stretch: pull one knee to chest, hold 2 min each side. Then legs up the wall for 5 min — shuffle your hips close to the wall, legs resting vertically. This is enough. No standing, no effort, phone away.' });
-  } else if (isHighCap) {
-    recs.push({ text: 'Evening (8pm): light resistance bands', sub: 'Band pull-aparts 2×15, banded side steps 2×12, slow bodyweight squats 2×8 (3-second descent). Finish by 8:20.' });
+  // ── 4. EVENING YOGA ──────────────────────────────────────────────────
+  // YWA links mapped to phase and difficulty
+  const ywaVideos = {
+    hardOrVulnerable: {
+      title: 'Yoga with Adriene: Wind Down — 12 min',
+      url: 'https://www.youtube.com/watch?v=BiWDsfZ3zbo',
+      desc: 'Entirely floor-based. Open it, press play, follow along. No decisions required.'
+    },
+    protect: {
+      title: 'Yoga with Adriene: Yoga to Slow Your Roll — 16 min',
+      url: 'https://www.youtube.com/watch?v=HtSSMx-LbQ4',
+      desc: 'Restorative and gentle. Good for the luteal and early follicular phases — softens the day without demanding anything from you.'
+    },
+    ovulation: {
+      title: 'Yoga with Adriene: Quick Restorative Yin — 15 min',
+      url: 'https://www.youtube.com/watch?v=nylNjxeOeSw',
+      desc: 'Brief restorative yin. Bring a blanket. Energy beginning to taper — this signals the transition.'
+    },
+    midF: {
+      title: 'Yoga with Adriene: Evening Flow — search on YouTube',
+      url: 'https://www.youtube.com/results?search_query=yoga+with+adriene+evening+flow+20+minutes',
+      desc: 'Your highest-capacity window — a 20–30 min gentle vinyasa is appropriate and won\'t disrupt sleep. Search "Yoga with Adriene evening flow" and pick one that looks good. Anything 20–30 min is right.'
+    },
+    menstrual: {
+      title: 'Yoga with Adriene: Yoga to Slow Your Roll — 16 min',
+      url: 'https://www.youtube.com/watch?v=HtSSMx-LbQ4',
+      desc: 'Restorative flow. Matches the relief-window energy — gentle movement without demand.'
+    }
+  };
+
+  const difficulty = getDifficultyScore();
+  let video;
+  if (difficulty === 'hard' || p === 'earlyF_vulnerable') {
+    video = ywaVideos.hardOrVulnerable;
+  } else if (p === 'luteal' || p === 'earlyF') {
+    video = ywaVideos.protect;
+  } else if (p === 'ovulation') {
+    video = ywaVideos.ovulation;
+  } else if (p === 'midF') {
+    video = ywaVideos.midF;
   } else {
-    recs.push({ text: 'Evening (8pm): bands or floor stretches, 10–15 min', sub: 'Keep it slow. If using bands: pull-aparts 2×15, side steps 2×12. If stretching: hip stretch 2 min each side, legs up the wall 5 min. Either is fine — choose whichever requires less decision-making right now. Finish by 8:20.' });
+    video = ywaVideos.menstrual;
   }
+
+  recs.push({
+    text: `Evening (8pm): ${video.title}`,
+    sub: `${video.desc} → <a href="${video.url}" target="_blank" style="color:var(--accent); text-decoration:underline;">Open on YouTube</a>`,
+    isLink: true
+  });
 
   return recs;
 }
@@ -670,7 +817,7 @@ function getRecoveryRecs() {
   return recs;
 }
 
-// ── DIFFICULTY SCORE (0 = fine, 3 = very hard day) ───────────────────
+// ── DIFFICULTY SCORE ─────────────────────────────────────────────────
 function getDifficultyScore() {
   let score = 0;
   if (state.energy === 'low') score++;
@@ -678,10 +825,24 @@ function getDifficultyScore() {
   if (state.mood === 'low' || state.mood === 'anxious') score++;
   if (state.phase === 'earlyF_vulnerable' || state.phase === 'luteal') score++;
   if (state.load === 'high') score++;
-  // Hard day: 3+, medium: 1-2, easy: 0
+  if (state.body === 'floor') score++;
   if (score >= 4) return 'hard';
   if (score >= 2) return 'medium';
   return 'easy';
+}
+
+// ── MORNING MOVEMENT DECISION ─────────────────────────────────────────
+// Returns 'floor' | 'standing' | 'standing_full'
+function getMorningMode() {
+  // User's explicit choice is the primary input
+  if (state.body === 'floor') return 'floor';
+
+  // Standing chosen — phase and energy determine level
+  const p = state.phase;
+  const isHighCap = (p === 'midF');
+  const depleted = (state.energy === 'low' || state.sleep === 'poor');
+  if (isHighCap && !depleted) return 'standing_full';
+  return 'standing';
 }
 
 // ── BUILD OUTPUT ─────────────────────────────────────────────────────
@@ -718,6 +879,8 @@ function buildRecs() {
     } else if (state.sleep === 'poor' && state.energy === 'low') {
       html += `<div class="alert alert-warning">Maintenance day. Hold the basics — don't try to catch up.</div>`;
     }
+  } else if (state.isWeekend && state.weekendMode === 'recovery') {
+    html += `<div class="alert alert-info">Recovery day. Your baseline weekend movement is enough. Protect sleep and keep the evening low-stimulation.</div>`;
   } else {
     if (pi.alert) {
       const cls = pi.alert === 'danger' ? 'alert-danger' : pi.alert === 'info' ? 'alert-info' : 'alert-warning';
@@ -778,7 +941,8 @@ function buildSection(title, icon, items, showSubs) {
   if (!items.length) return '';
   let html = `<div class="card rec-section"><div class="rec-header"><div class="rec-icon">${icon}</div><div class="rec-title">${title}</div></div>`;
   items.forEach(i => {
-    html += `<div class="rec-item"><div class="rec-dot"></div><div><div class="rec-text">${i.text}</div>${(showSubs && i.sub) ? `<div class="rec-sub">${i.sub}</div>` : ''}</div></div>`;
+    const showThisSub = showSubs || i.isLink;
+    html += `<div class="rec-item"><div class="rec-dot"></div><div><div class="rec-text">${i.text}</div>${(showThisSub && i.sub) ? `<div class="rec-sub">${i.sub}</div>` : ''}</div></div>`;
   });
   return html + '</div>';
 }
@@ -786,6 +950,7 @@ function buildSection(title, icon, items, showSubs) {
 function startOver() {
   Object.keys(state).forEach(k => { state[k] = null; });
   state.isMonday = false;
+  state.isWeekend = false;
   document.querySelectorAll('.q-opt').forEach(b => b.classList.remove('selected'));
   document.querySelectorAll('.session-card').forEach(b => b.className = 'session-card');
   document.getElementById('cycle-day-input').value = '';
@@ -799,6 +964,9 @@ function startOver() {
   document.getElementById('screen-1').classList.add('active');
   document.getElementById('monday-block').style.display = 'none';
   document.getElementById('not-monday-block').style.display = 'block';
+  document.getElementById('weekend-block').style.display = 'none';
+  const wwb = document.getElementById('weekend-walk-block');
+  if (wwb) wwb.style.display = 'none';
   init();
 }
 </script>

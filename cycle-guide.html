@@ -413,6 +413,7 @@ const phaseInfo = {
     name: 'Menstruation',
     color: '#C06B6B', bg: '#FDF0F0',
     days: `Days 1–${PERIOD_LENGTH}`,
+    shortNote: 'Your relief window. Use the stability gently.',
     note: 'Hormones low but stable — typically your relief window after the luteal phase. Use the relative mood stability, but don\'t immediately cash in all the recovery you just banked.',
     alert: null
   },
@@ -420,6 +421,7 @@ const phaseInfo = {
     name: 'Early follicular — vulnerable window',
     color: '#8B7BAB', bg: '#F4F1F9',
     days: 'Days 5–7',
+    shortNote: 'Your hardest days. This is temporary.',
     note: 'Your documented worst days emotionally. Estrogen rising but still low; sleep debt from the luteal phase peaks here. Sadness, irritability and flat mood now are physiological — not a signal about your life.',
     alert: 'danger',
     alertText: 'This is your most vulnerable window. Keep external demands as low as possible today. Don\'t make permanent assessments from a temporary hormonal state.'
@@ -428,6 +430,7 @@ const phaseInfo = {
     name: 'Early follicular',
     color: '#8B7BAB', bg: '#F4F1F9',
     days: 'Days 8–9',
+    shortNote: 'Coming out of the worst days. Energy returning.',
     note: 'Estrogen continuing to rise. The worst days (5–7) have passed. Energy and mood should be improving from here.',
     alert: 'warning',
     alertText: 'Coming out of your vulnerable window. Gentle movement, regular eating, and sleep protection today.'
@@ -436,6 +439,7 @@ const phaseInfo = {
     name: 'Mid follicular',
     color: '#5A8A6A', bg: '#EFF5F1',
     days: 'Days 10–17',
+    shortNote: 'Your best window. Build here.',
     note: 'Estrogen peaking. This is your highest-capacity window — cognitively, physically, emotionally. Build here, not in the luteal phase.',
     alert: 'info',
     alertText: 'Your best window. Schedule demanding work, difficult conversations, and harder exercise sessions now.'
@@ -444,6 +448,7 @@ const phaseInfo = {
     name: 'Early luteal / post-ovulation',
     color: '#4A7FA5', bg: '#EEF4F9',
     days: 'Days 18–20',
+    shortNote: 'Energy tapering. Begin consolidating.',
     note: 'Progesterone rising, energy beginning to taper. Maintain what you built in the follicular phase, but begin consolidating ahead of the luteal phase.',
     alert: null
   },
@@ -451,6 +456,7 @@ const phaseInfo = {
     name: 'Late luteal',
     color: '#C4956A', bg: '#FDF5EE',
     days: 'Days 21–27',
+    shortNote: 'Protection phase. Sleep is the priority.',
     note: 'Progesterone dropping. This is your highest-cost phase neurologically. The priority is protection, not performance.',
     alert: 'warning',
     alertText: 'Protect sleep above everything this phase. Defer non-essential decisions. Reduce optional load where you can.'
@@ -634,10 +640,25 @@ function getRecoveryRecs() {
   return recs;
 }
 
+// ── DIFFICULTY SCORE (0 = fine, 3 = very hard day) ───────────────────
+function getDifficultyScore() {
+  let score = 0;
+  if (state.energy === 'low') score++;
+  if (state.sleep === 'poor') score++;
+  if (state.mood === 'low' || state.mood === 'anxious') score++;
+  if (state.phase === 'earlyF_vulnerable' || state.phase === 'luteal') score++;
+  if (state.load === 'high') score++;
+  // Hard day: 3+, medium: 1-2, easy: 0
+  if (score >= 4) return 'hard';
+  if (score >= 2) return 'medium';
+  return 'easy';
+}
+
 // ── BUILD OUTPUT ─────────────────────────────────────────────────────
 function buildRecs() {
   const pi = phaseInfo[state.phase] || phaseInfo.luteal;
-  const pl = getPhaseLabel(state.cycleDay);
+  const difficulty = getDifficultyScore();
+  const showSubs = difficulty === 'easy';
   const movement = getMovementRecs();
   const food = getFoodRecs();
   const hydration = getHydrationRecs();
@@ -648,49 +669,71 @@ function buildRecs() {
   // Day badge
   html += `<div class="day-badge"><span style="color:var(--ink3); font-size:12px;">Cycle day</span> <strong style="font-family:'DM Serif Display',serif; font-size:16px;">${state.cycleDay}</strong></div>`;
 
-  // Phase banner
+  // Phase banner — short on hard days
+  const phaseNote = difficulty === 'hard'
+    ? pi.shortNote || pi.note.split('.')[0] + '.'
+    : pi.note;
   html += `<div class="phase-banner" style="background:${pi.bg}; border:1.5px solid ${pi.color}44;">
     <div class="p-badge" style="color:${pi.color}">${pi.days}</div>
     <h2 style="color:${pi.color}">${pi.name}</h2>
-    <p class="p-note" style="color:${pi.color}">${pi.note}</p>
+    ${difficulty !== 'hard' ? `<p class="p-note" style="color:${pi.color}">${phaseNote}</p>` : ''}
   </div>`;
 
-  // Alert
-  if (pi.alert) {
-    const cls = pi.alert === 'danger' ? 'alert-danger' : pi.alert === 'info' ? 'alert-info' : 'alert-warning';
-    html += `<div class="alert ${cls}">${pi.alertText}</div>`;
+  // Single top alert only — most important one, no stacking
+  if (difficulty === 'hard') {
+    if (state.phase === 'earlyF_vulnerable') {
+      html += `<div class="alert alert-danger">Days 5–7. This is temporary. Hold the basics today.</div>`;
+    } else if (state.phase === 'luteal') {
+      html += `<div class="alert alert-warning">Protect sleep above everything today.</div>`;
+    } else if (state.sleep === 'poor' && state.energy === 'low') {
+      html += `<div class="alert alert-warning">Maintenance day. Hold the basics — don't try to catch up.</div>`;
+    }
+  } else {
+    if (pi.alert) {
+      const cls = pi.alert === 'danger' ? 'alert-danger' : pi.alert === 'info' ? 'alert-info' : 'alert-warning';
+      html += `<div class="alert ${cls}">${pi.alertText}</div>`;
+    }
+    if (state.sleep === 'poor' && state.energy === 'low') {
+      html += `<div class="alert alert-warning">Poor sleep + low energy: maintenance day. Hold the basics.</div>`;
+    }
   }
 
-  // Depleted alert
-  if (state.sleep === 'poor' && state.energy === 'low') {
-    html += `<div class="alert alert-warning">Poor sleep + low energy: today is a maintenance day. Hold the basics — don't try to catch up.</div>`;
+  html += buildSection('Movement', '🏃', movement, showSubs);
+  html += buildSection('Food', '🥗', food, showSubs);
+  html += buildSection('Hydration', '💧', hydration, showSubs);
+  html += buildSection('Recovery', '🌙', recovery, showSubs);
+
+  // Supplements — compact on hard days
+  if (difficulty === 'hard') {
+    html += `<div class="card" style="padding:14px 16px;">
+      <div class="rec-title" style="margin-bottom:10px;">Supplements</div>
+      <div style="display:flex; gap:10px; font-size:13px; color:var(--ink2);">
+        <span>☀️ Multivitamin with breakfast</span>
+      </div>
+      <div style="display:flex; gap:10px; font-size:13px; color:var(--ink2); margin-top:6px;">
+        <span>🌙 Magnesium glycinate 200–400mg this evening</span>
+      </div>
+    </div>`;
+  } else {
+    html += `<div class="supplement-card">
+      <div class="rec-title" style="margin-bottom:12px;">Daily supplements</div>
+      <div class="supp-row">
+        <div class="supp-icon">☀️</div>
+        <div>
+          <div class="supp-name">Multivitamin — morning</div>
+          ${showSubs ? `<div class="supp-detail">Take with breakfast or lunch. Biotin, vitamin D3, B6, Co-Q10.</div>
+          <div class="supp-product">Boots Multivitamins for Women (30 tablets)</div>` : ''}
+        </div>
+      </div>
+      <div class="supp-row">
+        <div class="supp-icon">🌙</div>
+        <div>
+          <div class="supp-name">Magnesium glycinate 200–400mg — evening</div>
+          ${showSubs ? `<div class="supp-detail">30–60 min before wind-down, every evening. Cumulative effect — consistency matters.</div>` : ''}
+        </div>
+      </div>
+    </div>`;
   }
-
-  html += buildSection('Movement', '🏃', movement);
-  html += buildSection('Food', '🥗', food);
-  html += buildSection('Hydration', '💧', hydration);
-  html += buildSection('Recovery & nervous system', '🌙', recovery);
-
-  // Supplements
-  html += `<div class="supplement-card">
-    <div class="rec-title" style="margin-bottom:12px;">Daily supplements</div>
-    <div class="supp-row">
-      <div class="supp-icon">☀️</div>
-      <div>
-        <div class="supp-name">Multivitamin — morning</div>
-        <div class="supp-detail">Take with breakfast or lunch. Includes biotin and vitamin D3 relevant for energy, hair, and bone health through perimenopause. Take with food to aid absorption.</div>
-        <div class="supp-product">Boots Multivitamins for Women (30 tablets) — includes biotin, D3, B6, Co-Q10, iron. In-store and online.</div>
-      </div>
-    </div>
-    <div class="supp-row">
-      <div class="supp-icon">🌙</div>
-      <div>
-        <div class="supp-name">Magnesium glycinate 200–400mg — evening</div>
-        <div class="supp-detail">30–60 min before your wind-down routine, every evening. Works cumulatively on sleep architecture and GABA activity — consistency matters more than dose precision.</div>
-        <div class="supp-product">Separate from your multivitamin — both are needed. Take independently.</div>
-      </div>
-    </div>
-  </div>`;
 
   html += `<div class="rec-footer" style="margin-top:16px;">
     <button class="btn-ghost" onclick="startOver()">Start over for tomorrow</button>
@@ -701,11 +744,11 @@ function buildRecs() {
   c.innerHTML = html; c.style.display = 'block';
 }
 
-function buildSection(title, icon, items) {
+function buildSection(title, icon, items, showSubs) {
   if (!items.length) return '';
   let html = `<div class="card rec-section"><div class="rec-header"><div class="rec-icon">${icon}</div><div class="rec-title">${title}</div></div>`;
   items.forEach(i => {
-    html += `<div class="rec-item"><div class="rec-dot"></div><div><div class="rec-text">${i.text}</div>${i.sub ? `<div class="rec-sub">${i.sub}</div>` : ''}</div></div>`;
+    html += `<div class="rec-item"><div class="rec-dot"></div><div><div class="rec-text">${i.text}</div>${(showSubs && i.sub) ? `<div class="rec-sub">${i.sub}</div>` : ''}</div></div>`;
   });
   return html + '</div>';
 }

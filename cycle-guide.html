@@ -138,6 +138,22 @@
   .circuit-ex { color: var(--ink); flex: 1; }
   .circuit-reps { color: var(--ink3); font-size: 12px; white-space: nowrap; }
   .circuit-rest { font-size: 12px; color: var(--ink3); margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.06); }
+
+  /* Tappable checklist items */
+  .rec-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--surface2); align-items: flex-start; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; }
+  .rec-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .rec-item:active { opacity: 0.7; }
+  .rec-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--surface2); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.18s ease; background: var(--surface); }
+  .rec-item.done .rec-check { background: var(--accent); border-color: var(--accent); }
+  .rec-item.done .rec-check::after { content: ''; display: block; width: 5px; height: 9px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg) translate(-1px, -1px); }
+  .rec-item.done .rec-text { color: var(--ink3); text-decoration: line-through; text-decoration-color: var(--ink3); }
+  .rec-item.done .rec-sub { opacity: 0.45; }
+  .rec-item.done .circuit-toggle { opacity: 0.45; pointer-events: none; }
+
+  /* Export button */
+  .btn-export { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 99px; padding: 10px 24px; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
+  .btn-export:hover { background: var(--accent-light); }
+  .export-row { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 16px; }
 </style>
 </head>
 <body>
@@ -836,6 +852,7 @@ function getMorningMode() {
 
 // ── BUILD OUTPUT ─────────────────────────────────────────────────────
 function buildRecs() {
+  recItemCount = 0;
   const pi = phaseInfo[state.phase] || phaseInfo.luteal;
   const difficulty = getDifficultyScore();
   const showSubs = difficulty === 'easy';
@@ -887,43 +904,51 @@ function buildRecs() {
 
   // Supplements — compact on hard days
   if (difficulty === 'hard') {
+    const s1 = 'ri-' + (++recItemCount);
+    const s2 = 'ri-' + (++recItemCount);
     html += `<div class="card" style="padding:14px 16px;">
       <div class="rec-title" style="margin-bottom:10px;">Supplements</div>
-      <div style="display:flex; gap:10px; font-size:13px; color:var(--ink2);">
-        <span>☀️ Multivitamin with breakfast</span>
+      <div class="rec-item" id="${s1}" onclick="toggleDone('${s1}')" style="border-bottom:1px solid var(--surface2);">
+        <div class="rec-check"></div>
+        <div class="rec-text" style="font-size:13px;">☀️ Multivitamin with breakfast</div>
       </div>
-      <div style="display:flex; gap:10px; font-size:13px; color:var(--ink2); margin-top:6px;">
-        <span>🌙 Magnesium glycinate 200–400mg this evening</span>
+      <div class="rec-item" id="${s2}" onclick="toggleDone('${s2}')">
+        <div class="rec-check"></div>
+        <div class="rec-text" style="font-size:13px;">🌙 Magnesium glycinate 200–400mg this evening</div>
       </div>
     </div>`;
   } else {
+    const s1 = 'ri-' + (++recItemCount);
+    const s2 = 'ri-' + (++recItemCount);
     html += `<div class="supplement-card">
       <div class="rec-title" style="margin-bottom:12px;">Daily supplements</div>
-      <div class="supp-row">
-        <div class="supp-icon">☀️</div>
+      <div class="rec-item" id="${s1}" onclick="toggleDone('${s1}')" style="border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:10px; margin-bottom:2px;">
+        <div class="rec-check"></div>
         <div>
-          <div class="supp-name">Multivitamin — morning</div>
-          ${showSubs ? `<div class="supp-detail">Take with breakfast or lunch. Biotin, vitamin D3, B6, Co-Q10.</div>
-          <div class="supp-product">Boots Multivitamins for Women (30 tablets)</div>` : ''}
+          <div class="rec-text">☀️ Multivitamin — with breakfast</div>
+          ${showSubs ? `<div class="rec-sub">Take with food. Biotin, vitamin D3, B6.</div>` : ''}
         </div>
       </div>
-      <div class="supp-row">
-        <div class="supp-icon">🌙</div>
+      <div class="rec-item" id="${s2}" onclick="toggleDone('${s2}')">
+        <div class="rec-check"></div>
         <div>
-          <div class="supp-name">Magnesium glycinate 200–400mg — evening</div>
-          ${showSubs ? `<div class="supp-detail">30–60 min before wind-down, every evening. Cumulative effect — consistency matters.</div>` : ''}
+          <div class="rec-text">🌙 Magnesium glycinate 200–400mg — this evening</div>
+          ${showSubs ? `<div class="rec-sub">30–60 min before wind-down, every evening.</div>` : ''}
         </div>
       </div>
     </div>`;
   }
 
-  html += `<div class="rec-footer" style="margin-top:16px;">
+  html += `<div class="export-row">
+    <button class="btn-export" id="btn-export" onclick="exportToday()">Export today</button>
     <button class="btn-ghost" onclick="startOver()">Start over for tomorrow</button>
   </div></div>`;
 
   document.getElementById('recs-loading').style.display = 'none';
   const c = document.getElementById('recs-content');
   c.innerHTML = html; c.style.display = 'block';
+  // Save initial state (before any ticks)
+  setTimeout(saveToStorage, 100);
 }
 
 // ── CIRCUIT REFERENCE CARD ────────────────────────────────────────────
@@ -971,17 +996,163 @@ function toggleCircuit(id, btn) {
   btn.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = open ? ' Hide exercise list' : ' Show exercise list'; });
 }
 
+let recItemCount = 0;
+
+function toggleDone(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('done');
+  saveToStorage();
+}
+
 function buildSection(title, icon, items, showSubs) {
   if (!items.length) return '';
   circuitCardCount = 0;
   let html = `<div class="card rec-section"><div class="rec-header"><div class="rec-icon">${icon}</div><div class="rec-title">${title}</div></div>`;
   items.forEach(i => {
+    const id = 'ri-' + (++recItemCount);
     const showThisSub = showSubs || i.isLink;
-    html += `<div class="rec-item"><div class="rec-dot"></div><div style="width:100%"><div class="rec-text">${i.text}</div>${(showThisSub && i.sub) ? `<div class="rec-sub">${i.sub}</div>` : ''}${i.circuit ? getCircuitCard(i.circuit) : ''}</div></div>`;
+    html += `<div class="rec-item" id="${id}" onclick="toggleDone('${id}')">
+      <div class="rec-check"></div>
+      <div style="width:100%">
+        <div class="rec-text">${i.text}</div>
+        ${(showThisSub && i.sub) ? `<div class="rec-sub">${i.sub}</div>` : ''}
+        ${i.circuit ? getCircuitCard(i.circuit) : ''}
+      </div>
+    </div>`;
   });
   return html + '</div>';
 }
 
+// ── LOCAL STORAGE ─────────────────────────────────────────────────────
+const STORAGE_KEY = 'cycleguide_day';
+const EXPORT_KEY  = 'cycleguide_exported';
+const EXPORT_HOUR = 23; // 11pm
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function saveToStorage() {
+  if (!state.cycleDay) return;
+  // Collect ticked item texts
+  const ticked = [], unticked = [];
+  document.querySelectorAll('.rec-item').forEach(el => {
+    const txt = el.querySelector('.rec-text');
+    if (!txt) return;
+    const clean = txt.innerText || txt.textContent;
+    if (el.classList.contains('done')) ticked.push(clean);
+    else unticked.push(clean);
+  });
+  const payload = {
+    date: todayKey(),
+    state: { ...state },
+    ticked,
+    unticked,
+    savedAt: new Date().toISOString()
+  };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch(e) {}
+}
+
+function buildExportText(payload) {
+  const d = payload.date;
+  const s = payload.state;
+  const pi = phaseInfo[s.phase] || phaseInfo.luteal;
+  const dayName = new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  const checkInMap = {
+    energy: { low: 'Low', medium: 'Okay', good: 'Good' },
+    sleep:  { poor: 'Poor', okay: 'Okay', good: 'Good' },
+    mood:   { low: 'Low / flat', anxious: 'Anxious', irritable: 'Irritable', okay: 'Okay', good: 'Good' },
+    load:   { high: 'High', medium: 'Medium', low: 'Low' },
+    body:   { standing: 'Standing circuit', floor: 'Floor session' }
+  };
+
+  let lines = [];
+  lines.push('DAILY GUIDE — ' + dayName.toUpperCase());
+  lines.push('─'.repeat(40));
+  lines.push('');
+  lines.push('CYCLE');
+  lines.push(`  Day ${s.cycleDay} — ${pi.name}`);
+  if (s.isWeekend) lines.push(`  Weekend: ${s.weekendMode === 'active' ? 'active day' : 'recovery day'}`);
+  if (s.isMonday && s.mondaySession) lines.push(`  Monday session: ${s.mondaySession === 'swim' ? 'swim' : 'gym — incline walk'}`);
+  lines.push('');
+  lines.push('CHECK-IN');
+  lines.push(`  Energy     ${checkInMap.energy[s.energy] || '—'}`);
+  lines.push(`  Sleep      ${checkInMap.sleep[s.sleep] || '—'}`);
+  lines.push(`  Mood       ${checkInMap.mood[s.mood] || '—'}`);
+  lines.push(`  Load       ${checkInMap.load[s.load] || '—'}`);
+  lines.push(`  Morning    ${checkInMap.body[s.body] || '—'}`);
+  lines.push('');
+  lines.push('COMPLETED');
+  if (payload.ticked.length) {
+    payload.ticked.forEach(t => lines.push('  ✓ ' + t));
+  } else {
+    lines.push('  (nothing ticked)');
+  }
+  if (payload.unticked.length) {
+    lines.push('');
+    lines.push('NOT COMPLETED');
+    payload.unticked.forEach(t => lines.push('  ○ ' + t));
+  }
+  lines.push('');
+  lines.push('─'.repeat(40));
+  lines.push('Exported from Daily Guide at ' + new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }));
+  return lines.join('\n');
+}
+
+function triggerExport(payload, label) {
+  const text = buildExportText(payload);
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `daily-guide-${payload.date}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  // Mark as exported for today
+  try { localStorage.setItem(EXPORT_KEY, payload.date); } catch(e) {}
+  if (label) {
+    label.textContent = 'Exported ✓';
+    setTimeout(() => { label.textContent = 'Export today'; }, 3000);
+  }
+}
+
+function exportToday() {
+  saveToStorage();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const payload = JSON.parse(raw);
+    if (payload.date !== todayKey()) return;
+    const btn = document.getElementById('btn-export');
+    triggerExport(payload, btn);
+  } catch(e) {}
+}
+
+// ── AUTO-EXPORT AT 11PM ───────────────────────────────────────────────
+function checkAutoExport() {
+  const now  = new Date();
+  const hour = now.getHours();
+  if (hour < EXPORT_HOUR) return;
+  try {
+    const lastExport = localStorage.getItem(EXPORT_KEY);
+    if (lastExport === todayKey()) return; // already exported today
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const payload = JSON.parse(raw);
+    if (payload.date !== todayKey()) return; // stale data
+    triggerExport(payload, null);
+  } catch(e) {}
+}
+
+// Run auto-export check on load and every 5 minutes
+checkAutoExport();
+setInterval(checkAutoExport, 5 * 60 * 1000);
+
+// ── START OVER ────────────────────────────────────────────────────────
 function startOver() {
   Object.keys(state).forEach(k => { state[k] = null; });
   state.isMonday = false;

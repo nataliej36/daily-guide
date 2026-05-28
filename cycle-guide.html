@@ -533,20 +533,20 @@ function getMovementRecs() {
   // ── 1. MORNING ──────────────────────────────────────────────────────
   if (morningMode === 'floor') {
     recs.push({
-      text: 'Morning: floor circuit — 8 minutes, stay on the mat',
-      sub: 'Do these in order without standing up. (1) Lie on your back, hug both knees to chest, hold 60 seconds. (2) Roll to all fours, do 8 cat-cows: arch your back on the inhale, round it on the exhale. (3) Feet flat on the floor, push your hips straight up toward the ceiling, hold 2 seconds, lower slowly — 2 sets of 10. (4) Still on all fours, draw slow circles with each hip, 5 each direction. That is the complete session. You do not need to do anything else before your shower.',
+      text: 'Morning: floor circuit — 8 minutes',
+      sub: 'Stay on the mat throughout. Tap the list below for the exercises.',
       circuit: { rounds: 1, floor: true }
     });
   } else if (morningMode === 'standing_full') {
     recs.push({
       text: 'Morning: standing circuit — 3 rounds, 12–15 minutes',
-      sub: 'Your highest-capacity phase. Do each exercise in sequence, then rest 60 seconds before repeating. Round: (1) Squat ×10 — feet shoulder-width, push hips back, lower until thighs are parallel, drive through heels to stand. (2) Romanian deadlift ×8 — push hips back not down, back flat, feel the pull in your hamstrings, stand tall. (3) Reverse lunge ×6 each leg — step back, lower back knee toward floor, return to standing. (4) Wall push-up ×10 — hands flat on wall at shoulder height, bend elbows to bring chest to wall, push back. (5) Hip abduction ×10 each side — hand on wall, lift outer leg to the side 30–45 degrees, lower with control. (6) Calf raise ×12 — rise onto balls of both feet, hold 1 second, lower over 3 seconds. Add reps if you feel strong today.',
+      sub: 'Your highest-capacity phase. Rest 60 seconds between rounds. Tap the list below.',
       circuit: { rounds: 3, floor: false }
     });
   } else {
     recs.push({
       text: 'Morning: standing circuit — 2 rounds, 10 minutes',
-      sub: 'Do each exercise in sequence, then rest 60 seconds before the second round. Round: (1) Squat ×10 — feet shoulder-width, push hips back, lower until thighs are parallel, drive through heels to stand. Hold a wall lightly if balance feels unsteady first thing. (2) Romanian deadlift ×8 — push hips back not down, back flat, feel the pull in your hamstrings, stand tall. (3) Reverse lunge ×6 each leg — step back, lower back knee toward floor, return to standing. (4) Wall push-up ×10 — hands flat on wall at shoulder height, bend elbows to bring chest to wall, push back. (5) Hip abduction ×10 each side — hand on wall, lift outer leg to the side 30–45 degrees, lower with control. (6) Calf raise ×12 — rise onto balls of both feet, hold 1 second, lower over 3 seconds.',
+      sub: 'Rest 60 seconds between rounds. Tap the list below.',
       circuit: { rounds: 2, floor: false }
     });
   }
@@ -555,50 +555,47 @@ function getMovementRecs() {
   if (state.isWeekend) {
     if (state.weekendMode === 'recovery') {
       recs.push({
-        text: 'Today: gentle incidental movement only',
-        sub: 'No structured walk needed on a recovery day. Normal movement with your child — playing, going out briefly — is enough. Your 7000-step weekend baseline is already cardio-sufficient. Rest is the intervention today.'
+        text: 'Today: incidental movement only',
+        sub: 'No structured walk needed. Your baseline weekend movement is enough.'
       });
     } else if (state.weekendWalk === 'solo') {
-      const p = state.phase;
-      const isHighCap = (p === 'midF');
-      const isProtect = (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF');
       if (isHighCap && !depleted) {
         recs.push({
-          text: 'Weekend walk: push it today — 45–60 min, varied pace',
-          sub: 'Your highest-capacity phase and you\'re going solo. Walk briskly for the first 20 min, then vary your pace — find a hill if there is one. This is the window where cardiovascular effort converts most effectively. Aim for 8000–10000 steps total today.'
+          text: 'Weekend walk: 45–60 min, varied pace',
+          sub: 'Peak window — vary your pace and find a hill if there is one. Aim for 8000–10000 steps.'
         });
       } else if (isProtect || depleted) {
         recs.push({
-          text: 'Weekend walk: 30–40 min at a comfortable pace',
-          sub: 'Solo means you set the pace entirely. Walk at whatever speed feels okay — no benchmark to hit. The movement itself is the point. Avoid routes with heavy sensory load (busy roads, crowds) if your load score is high today.'
+          text: 'Weekend walk: 30–40 min, comfortable pace',
+          sub: 'You set the pace entirely. Avoid high-sensory routes if load is high today.'
         });
       } else {
         recs.push({
           text: 'Weekend walk: 40–50 min, moderate pace',
-          sub: 'A good opportunity for an unstructured longer walk. Aim for roughly 6000–8000 steps. No need to track actively — just walk until you feel like turning back.'
+          sub: 'Aim for 6000–8000 steps. Walk until you feel like turning back.'
         });
       }
     } else if (state.weekendWalk === 'child') {
       recs.push({
-        text: 'Weekend walk: child\'s pace — let duration be the target, not speed',
-        sub: 'Walking with a young child means unpredictable pace and frequent stops. That\'s fine — the total movement accumulates. Aim for 45–60 min out, which at a child\'s pace typically lands around 5000–7000 steps. Treat any frustration about pace as a signal to lower your expectations of the walk, not to push the child.'
+        text: 'Weekend walk: child\'s pace — duration over speed',
+        sub: 'Aim for 45–60 min out. At a child\'s pace that lands around 5000–7000 steps.'
       });
       if (!depleted && state.phase !== 'earlyF_vulnerable') {
         recs.push({
-          text: 'If you get a solo window later: add 15–20 min brisk walking',
-          sub: 'Even a short solo walk at a proper pace — after naptime, during quiet play — meaningfully tops up the cardiovascular stimulus a child-paced walk can\'t fully provide.'
+          text: 'Solo window later: add 15–20 min brisk walking if you get one',
+          sub: 'Tops up the cardiovascular stimulus a child-paced walk can\'t fully provide.'
         });
       }
     }
   } else if (depleted || p === 'earlyF_vulnerable') {
     recs.push({
       text: 'Lunchtime: 10 min walk, flat route',
-      sub: 'Even 10 min significantly reduces the post-meal glucose rise. Go at whatever pace you like — the movement is what matters, not the pace.'
+      sub: 'Even 10 min significantly reduces the post-meal glucose rise.'
     });
   } else {
     recs.push({
       text: 'Lunchtime: 15–20 min brisk walk',
-      sub: 'Your most evidence-backed daily habit. Leave your phone in your pocket for the first 10 min if you can — the cognitive break compounds the physical benefit.'
+      sub: 'Leave your phone in your pocket for the first 10 min if you can.'
     });
   }
 
@@ -606,27 +603,27 @@ function getMovementRecs() {
   if (!state.isWeekend && state.isMonday && state.mondaySession) {
     if (state.mondaySession === 'swim') {
       if (depleted && isProtect) {
-        recs.push({ text: 'Evening swim: restorative only', sub: 'Easy continuous lengths, 20–25 min. No intervals. If you feel worse after 10 min, get out — that\'s a valid decision. The rhythm and breathing is the point today, not the distance.' });
+        recs.push({ text: 'Evening swim: restorative — 20–25 min', sub: 'Easy continuous lengths only. End early if you feel worse after 10 min.' });
       } else if (isHighCap && !depleted) {
-        recs.push({ text: 'Evening swim: push session', sub: '4×50m at pace with easy recovery lengths between. 35–45 min total. Your estrogen is high — this is when effort converts to fitness most effectively.' });
+        recs.push({ text: 'Evening swim: push session — 35–45 min', sub: '4×50m at pace with easy recovery lengths between.' });
       } else if (isProtect) {
-        recs.push({ text: 'Evening swim: steady restorative', sub: 'Continuous easy pace, 25–30 min. Finish feeling calmer than you arrived.' });
+        recs.push({ text: 'Evening swim: steady restorative — 25–30 min', sub: 'Finish feeling calmer than you arrived.' });
       } else {
-        recs.push({ text: 'Evening swim: moderate session', sub: '30–35 min continuous. Benchmark: you should feel better leaving than arriving.' });
+        recs.push({ text: 'Evening swim: moderate — 30–35 min', sub: 'Finish feeling better than you started.' });
       }
     } else {
       if (depleted || p === 'earlyF_vulnerable') {
-        recs.push({ text: 'Evening gym: incline walk — recovery', sub: 'Treadmill: 3–5% incline, 3.0–3.2 mph, 25 min. HR below 120 bpm. Movement as medicine today — not a fitness session.' });
+        recs.push({ text: 'Evening gym: incline walk — recovery', sub: '3–5% incline, 3.0–3.2 mph, 25 min. HR below 120 bpm.' });
       } else if (p === 'luteal') {
-        recs.push({ text: 'Evening gym: incline walk — moderate', sub: 'Treadmill: 6–8% incline, 3.2–3.5 mph, 30 min. HR 120–135. Steady state only — no incline spikes.' });
+        recs.push({ text: 'Evening gym: incline walk — moderate', sub: '6–8% incline, 3.2–3.5 mph, 30 min. HR 120–135.' });
       } else if (p === 'menstrual' || p === 'earlyF') {
-        recs.push({ text: 'Evening gym: incline walk — building', sub: 'Treadmill: 8–10% incline, 3.3–3.6 mph, 30–35 min. HR 130–145. Energy returning — you can push a little more today.' });
+        recs.push({ text: 'Evening gym: incline walk — building', sub: '8–10% incline, 3.3–3.6 mph, 30–35 min. HR 130–145.' });
       } else if (isHighCap) {
-        recs.push({ text: 'Evening gym: incline walk — push', sub: 'Treadmill: 10–12% incline, 3.5–3.8 mph, 35–40 min. HR 140–155. Add 15–18% incline spikes for 30s if it feels good. Peak window.' });
+        recs.push({ text: 'Evening gym: incline walk — push', sub: '10–12% incline, 3.5–3.8 mph, 35–40 min. HR 140–155. Add 15–18% spikes if it feels good.' });
       } else {
-        recs.push({ text: 'Evening gym: incline walk — standard', sub: 'Treadmill: 8–10% incline, 3.3–3.5 mph, 30–35 min. HR 130–145.' });
+        recs.push({ text: 'Evening gym: incline walk — standard', sub: '8–10% incline, 3.3–3.5 mph, 30–35 min. HR 130–145.' });
       }
-      recs.push({ text: 'Before leaving: 2×10 bodyweight squats', sub: 'Takes 3 min. Adds the bone-loading stimulus the treadmill doesn\'t provide.' });
+      recs.push({ text: 'Before leaving: 2×10 bodyweight squats', sub: 'Takes 3 min. Adds bone-loading the treadmill doesn\'t provide.' });
     }
   }
 
@@ -714,8 +711,8 @@ function getHydrationRecs() {
 
   // Morning target
   recs.push({
-    text: 'Morning: drink 500ml of water before or with breakfast',
-    sub: 'Fill a glass or bottle the night before and leave it somewhere you\'ll see it — next to the kettle or by your toothbrush. Drink it before you make coffee. Add another 200–300ml with or after your morning coffee.'
+    text: 'Morning: 500ml water before or with breakfast',
+    sub: 'Leave a glass by the kettle the night before. Drink it before you make coffee.'
   });
 
   // Session hydration if Monday
@@ -723,39 +720,39 @@ function getHydrationRecs() {
     recs.push({
       text: 'Before your session: 300–400ml in the hour beforehand',
       sub: state.mondaySession === 'swim'
-        ? 'Easy to underestimate fluid loss in the pool. Sip rather than gulp. Rehydrate with 400–500ml immediately after your swim.'
-        : 'Start your treadmill session well hydrated. Carry water on the treadmill. Rehydrate with 400–500ml after — more if the session is vigorous.'
+        ? 'Sip rather than gulp. Rehydrate with 400–500ml immediately after.'
+        : 'Carry water on the treadmill. Rehydrate with 400–500ml after.'
     });
   }
 
   // Lunchtime refill
   recs.push({
-    text: 'Lunchtime: refill your bottle — aim for 400–500ml through the afternoon',
-    sub: 'Refill it as you sit down to eat, so it\'s ready for the afternoon. If you feel the 3pm energy dip, drink a full glass before reaching for coffee or food — it\'s frequently dehydration, not hunger or tiredness.'
+    text: 'Lunchtime: refill your bottle — 400–500ml through the afternoon',
+    sub: 'Refill as you sit down to eat. If the 3pm dip hits, drink a full glass before reaching for coffee.'
   });
 
   // Phase-specific note
   if (p === 'luteal' || p === 'earlyF_vulnerable') {
     recs.push({
-      text: 'Luteal phase: hydration needs are slightly higher',
-      sub: 'Progesterone affects fluid regulation. Aim for 2–2.5L total fluids today including food moisture. Symptoms like headaches or heightened fatigue in this phase can partly reflect mild dehydration.'
+      text: 'Total target today: 2–2.5L — luteal phase needs are slightly higher',
+      sub: 'Progesterone affects fluid regulation. Headaches or heightened fatigue can partly reflect mild dehydration.'
     });
   } else if (p === 'midF') {
     recs.push({
       text: 'Total target today: ~1.8–2.2L fluids',
-      sub: 'Your higher-capacity phase — adequate hydration supports the cognitive and physical output you can make the most of right now.'
+      sub: 'Higher-capacity phase — hydration supports the output you can make most of right now.'
     });
   } else {
     recs.push({
       text: 'Total daily target: ~1.8–2L fluids',
-      sub: 'Includes water, herbal tea, and food moisture. Pale straw-coloured urine by mid-afternoon is a reasonable indicator — not perfect, but practical.'
+      sub: 'Pale straw-coloured urine by mid-afternoon is a reasonable indicator.'
     });
   }
 
   // Caffeine cutoff
   recs.push({
-    text: 'Caffeine cutoff: 2–3pm',
-    sub: 'Decaf or herbal tea after this point. Half-life of caffeine is ~5–7 hours — a 3pm coffee is still active at 10pm. Especially important in the luteal phase.'
+    text: 'Caffeine cutoff: 2–3pm — tea included',
+    sub: 'Half-life is 5–7 hours regardless of source. Rooibos or chamomile after this point.'
   });
 
   return recs;
@@ -766,56 +763,51 @@ function getRecoveryRecs() {
   const p = state.phase;
   const recs = [];
 
-  // Sleep — specific actions not vague intentions
   if (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF') {
     recs.push({
       text: 'Be in bed by 10pm tonight',
-      sub: 'Set an alarm for 9:15pm as your wind-down start. Cool the bedroom before you go in. No screens after 9:30pm — put your phone in another room or use a physical alarm. Sleep debt right now directly affects how you feel on days 5–7.'
+      sub: 'Set a 9:15pm alarm labelled "start winding down." No screens after 9:30pm — phone in another room.'
     });
   } else {
     recs.push({
       text: 'Aim for the same bedtime as yesterday, within 30 minutes',
-      sub: 'Consistent timing matters more than total hours. If you went to bed at 10:30pm last night, aim for 10–11pm tonight. Set a phone alarm or reminder at 9:15pm labelled "start winding down" if that helps.'
+      sub: 'Set a 9:15pm reminder if that helps. Consistent timing matters more than total hours.'
     });
   }
 
-  // High load day — concrete actions replacing "protect transitions"
   if (state.load === 'high') {
     recs.push({
       text: 'Before you go inside after work: sit in the car for 5 minutes',
-      sub: 'Engine off, phone down. Do nothing. This is a deliberate buffer between work-mode and home-mode — it reduces the carryover of work stress into the evening and lowers the demand on your masking effort at home.'
+      sub: 'Engine off, phone down. Deliberate buffer between work mode and home mode.'
     });
     recs.push({
-      text: 'After the school run / bedtime: do not start a new task for 20 minutes',
-      sub: 'Sit down, low light, something low-input — a podcast, tea, silence. This is recovery time, not wasted time. High-masking days require this as maintenance, not as a reward.'
+      text: 'After bedtime: don\'t start a new task for 20 minutes',
+      sub: 'Sit down, low light, something low-input. High-masking days require this as maintenance.'
     });
   }
 
-  // Anxiety — specific technique replacing "deploy CBT toolkit"
   if (state.mood === 'anxious') {
     recs.push({
-      text: 'If anxiety spikes: breathe out for longer than you breathe in',
-      sub: 'Breathe in for 4 counts, out for 6–8 counts. Repeat 5 times. This directly activates the vagus nerve and slows heart rate — it works within 60–90 seconds. Use it before a meeting, in the car, or whenever you feel it building.'
+      text: 'If anxiety spikes: breathe in for 4 counts, out for 6–8 counts — repeat 5 times',
+      sub: 'Use it at the first sign of escalation — before a meeting, in the car, not after you\'re overwhelmed.'
     });
     recs.push({
       text: 'Use your CBT tools now, not after you\'re overwhelmed',
-      sub: 'The hormonal component of anxiety today (days 5–7 / luteal phase) responds to the same techniques you already use for GAD — the difference is that waiting until you\'re overwhelmed makes them less effective. Notice the first sign of escalation and intervene then.'
+      sub: 'The hormonal component responds to the same techniques — the difference is timing.'
     });
   }
 
-  // Days 5–7 with low mood — concrete reframe
   if (p === 'earlyF_vulnerable' && (state.mood === 'low' || state.mood === 'anxious')) {
     recs.push({
       text: 'Don\'t make any decisions about your life today that you can defer',
-      sub: 'Your brain is generating negative assessments right now that it won\'t generate in 4–5 days. This is not intuition — it\'s a predictable hormonal effect on mood. Check your Clue data: if this pattern repeats each cycle, that\'s the evidence. Write things down to revisit on day 10 instead of acting on them now.'
+      sub: 'Write things down to revisit on day 10. Your brain is generating assessments today it won\'t generate in 4–5 days.'
     });
   }
 
-  // Sensory recovery — specific not vague
   if (state.load === 'high' || p === 'luteal' || p === 'earlyF_vulnerable') {
     recs.push({
       text: 'After 8pm: remove one source of sensory input you don\'t need',
-      sub: 'Pick one: turn off background TV, switch to a lamp instead of overhead light, change into comfortable clothes if you haven\'t already, move to a quieter room. You don\'t need to do all of them — one deliberate reduction is enough to signal the nervous system to downregulate.'
+      sub: 'Pick one — background TV off, lamp instead of overhead light, comfortable clothes, quieter room.'
     });
   }
 
@@ -855,7 +847,7 @@ function buildRecs() {
   recItemCount = 0;
   const pi = phaseInfo[state.phase] || phaseInfo.luteal;
   const difficulty = getDifficultyScore();
-  const showSubs = difficulty === 'easy';
+  const showSubs = true; // sub-text is now consistently one sentence — always show
   const movement = getMovementRecs();
   const food = getFoodRecs();
   const hydration = getHydrationRecs();
@@ -978,11 +970,11 @@ function getCircuitCard(circuit) {
     <div class="circuit-card" id="${id}">
       <div class="circuit-rounds">${rounds} round${rounds > 1 ? 's' : ''} — standing</div>
       <div class="circuit-row"><span class="circuit-num">1</span><span class="circuit-ex">Squat</span><span class="circuit-reps">×10</span></div>
-      <div class="circuit-row"><span class="circuit-num">2</span><span class="circuit-ex">Romanian deadlift</span><span class="circuit-reps">×8</span></div>
+      <div class="circuit-row"><span class="circuit-num">2</span><span class="circuit-ex">Standing oblique crunch</span><span class="circuit-reps">×10 each side</span></div>
       <div class="circuit-row"><span class="circuit-num">3</span><span class="circuit-ex">Reverse lunge</span><span class="circuit-reps">×6 each leg</span></div>
       <div class="circuit-row"><span class="circuit-num">4</span><span class="circuit-ex">Wall push-up</span><span class="circuit-reps">×10</span></div>
       <div class="circuit-row"><span class="circuit-num">5</span><span class="circuit-ex">Hip abduction</span><span class="circuit-reps">×10 each side</span></div>
-      <div class="circuit-row"><span class="circuit-num">6</span><span class="circuit-ex">Calf raise</span><span class="circuit-reps">×12</span></div>
+      <div class="circuit-row"><span class="circuit-num">6</span><span class="circuit-ex">Single-leg balance hold</span><span class="circuit-reps">20–30s each side</span></div>
       ${rounds > 1 ? `<div class="circuit-rest">Rest 60 seconds between rounds</div>` : ''}
     </div>`;
 }

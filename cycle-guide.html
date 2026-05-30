@@ -693,11 +693,13 @@ function getFoodRecs() {
   }
 
   if (isProtect || state.mood === 'irritable' || state.mood === 'anxious') {
-    recs.push({ text: 'Don\'t go more than 4 hours between meals today', sub: 'Set a phone reminder for lunchtime if you tend to push through. A drop in blood sugar right now will make irritability or anxiety noticeably worse within 20–30 minutes — eating something with protein before that happens is faster-acting than any other intervention available to you.' });
-    recs.push({ text: 'Lunch: bagel + protein side — not the bagel alone', sub: 'Edamame, eggs, hummus, or smoked salmon alongside. The protein slows glucose absorption and sustains energy.' });
+    recs.push({ text: 'Don\'t go more than 4 hours between meals today', sub: 'Set a phone reminder for lunchtime if you tend to push through. A drop in blood sugar right now will make irritability or anxiety noticeably worse within 20–30 minutes.' });
+    recs.push({ text: 'Lunch: bagel build as usual — eat it before 1pm today', sub: 'The protein and carb combination is right for blood sugar stability. Don\'t skip or reduce it.' });
   } else {
-    recs.push({ text: 'Lunch: your usual structure', sub: 'Bagel + protein side + veg. Consistent structure reduces decision fatigue.' });
+    recs.push({ text: 'Lunch: bagel build — ~30g protein, nothing to add', sub: 'Eat at a consistent time. If you\'re hungry, add edamame or cucumber alongside.' });
   }
+
+  recs.push({ text: 'Drink a full glass of water with lunch', sub: 'Refill your bottle at the same time so it\'s ready for the afternoon.' });
 
   return recs;
 }

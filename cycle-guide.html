@@ -206,8 +206,8 @@
       <div class="q-block" id="weekend-block" style="display:none;">
         <div class="q-label">How is today shaping up?</div>
         <div class="q-options" style="flex-direction:column; gap:8px;">
-          <button class="q-opt" onclick="selectWeekend('active',this)">Active day — a longer walk is on</button>
-          <button class="q-opt" onclick="selectWeekend('recovery',this)">Recovery day — keeping it gentle</button>
+          <button class="q-opt" onclick="selectWeekend('active',this)">Out and about — activities, errands, or walking</button>
+          <button class="q-opt" onclick="selectWeekend('recovery',this)">Home-based — indoors most of the day</button>
         </div>
       </div>
 
@@ -273,15 +273,6 @@
         <div class="q-options" style="flex-direction:column; gap:10px;">
           <button class="q-opt" onclick="selectQ('body','standing',this)">Standing circuit — I'm getting up to move</button>
           <button class="q-opt" onclick="selectQ('body','floor',this)">Floor session — I'm staying down for now</button>
-        </div>
-      </div>
-
-      <div class="q-block" id="weekend-walk-block" style="display:none;">
-        <div class="q-label">The longer walk today — what's the plan?</div>
-        <div class="q-options" style="flex-direction:column; gap:8px;">
-          <button class="q-opt" onclick="selectQ('weekendWalk','solo',this)">Solo — going out on my own</button>
-          <button class="q-opt" onclick="selectQ('weekendWalk','child',this)">With my child — walking together</button>
-          <button class="q-opt" onclick="selectQ('weekendWalk','none',this)">Not today — recovery day</button>
         </div>
       </div>
 
@@ -352,8 +343,7 @@ const state = {
   phase: null,
   isMonday: false,
   isWeekend: false,
-  weekendMode: null,   // 'active' | 'recovery'
-  weekendWalk: null,   // 'solo' | 'child' | 'none'
+  weekendMode: null,
   mondaySession: null,
   energy: null, sleep: null, mood: null, load: null, body: null
 };
@@ -416,9 +406,6 @@ function selectWeekend(mode, el) {
   state.weekendMode = mode;
   document.getElementById('weekend-block').querySelectorAll('.q-opt').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
-  const walkBlock = document.getElementById('weekend-walk-block');
-  if (walkBlock) walkBlock.style.display = mode === 'active' ? 'block' : 'none';
-  if (mode === 'recovery') state.weekendWalk = 'none';
   checkNext1();
 }
 
@@ -435,8 +422,7 @@ function checkNext1() {
 
 function checkNext2() {
   const baseOk = state.energy && state.sleep && state.mood && state.load && state.body;
-  const weekendWalkOk = !state.isWeekend || state.weekendMode === 'recovery' || state.weekendWalk !== null;
-  document.getElementById('btn-next-2').disabled = !(baseOk && weekendWalkOk);
+  document.getElementById('btn-next-2').disabled = !baseOk;
 }
 
 function selectQ(key, val, el) {
@@ -454,10 +440,6 @@ function goToScreen1() {
 function goToScreen2() {
   document.getElementById('screen-1').classList.remove('active');
   document.getElementById('screen-2').classList.add('active');
-  const walkBlock = document.getElementById('weekend-walk-block');
-  if (walkBlock) {
-    walkBlock.style.display = (state.isWeekend && state.weekendMode === 'active') ? 'block' : 'none';
-  }
 }
 function goToScreen3() {
   document.getElementById('screen-2').classList.remove('active');
@@ -553,40 +535,7 @@ function getMovementRecs() {
 
   // ── 2. LUNCHTIME / DAYTIME MOVEMENT ─────────────────────────────────
   if (state.isWeekend) {
-    if (state.weekendMode === 'recovery') {
-      recs.push({
-        text: 'Today: incidental movement only',
-        sub: 'No structured walk needed. Your baseline weekend movement is enough.'
-      });
-    } else if (state.weekendWalk === 'solo') {
-      if (isHighCap && !depleted) {
-        recs.push({
-          text: 'Weekend walk: 45–60 min, varied pace',
-          sub: 'Peak window — vary your pace and find a hill if there is one. Aim for 8000–10000 steps.'
-        });
-      } else if (isProtect || depleted) {
-        recs.push({
-          text: 'Weekend walk: 30–40 min, comfortable pace',
-          sub: 'You set the pace entirely. Avoid high-sensory routes if load is high today.'
-        });
-      } else {
-        recs.push({
-          text: 'Weekend walk: 40–50 min, moderate pace',
-          sub: 'Aim for 6000–8000 steps. Walk until you feel like turning back.'
-        });
-      }
-    } else if (state.weekendWalk === 'child') {
-      recs.push({
-        text: 'Weekend walk: child\'s pace — duration over speed',
-        sub: 'Aim for 45–60 min out. At a child\'s pace that lands around 5000–7000 steps.'
-      });
-      if (!depleted && state.phase !== 'earlyF_vulnerable') {
-        recs.push({
-          text: 'Solo window later: add 15–20 min brisk walking if you get one',
-          sub: 'Tops up the cardiovascular stimulus a child-paced walk can\'t fully provide.'
-        });
-      }
-    }
+    // Weekend movement handled entirely in getWeekendRecs — no lunchtime walk item here
   } else if (depleted || p === 'earlyF_vulnerable') {
     recs.push({
       text: 'Lunchtime: 10 min walk, flat route',
@@ -659,60 +608,105 @@ function getEveningRecs() {
   return recs;
 }
 
-// ── WEEKEND RECS ─────────────────────────────────────────────────────
-function getWeekendRecs() {
+// ── WEEKEND RECS — split by time of day ──────────────────────────────
+function getWeekendMorningRecs() {
+  const p = state.phase;
+  const isSaturday = new Date().getDay() === 6;
+  const recs = [];
+
+  if (p === 'luteal') {
+    recs.push({ text: 'Breakfast: protein first — even if appetite is low', sub: 'Skyr or eggs. Blood sugar stability is especially important right now.' });
+  } else {
+    recs.push({ text: 'Breakfast: same protein habit as weekdays', sub: 'Skyr, eggs, or yogurt. Weekends are where this habit most easily slips.' });
+  }
+
+  if (isSaturday) {
+    recs.push({ text: 'Eat before the swimming lesson — not after', sub: 'Something with protein takes 5 minutes and makes the morning significantly more manageable.' });
+  }
+
+  recs.push({ text: 'Water before coffee — 300–500ml', sub: 'Leave a glass by the kettle the night before.' });
+
+  recs.push({
+    text: 'Morning circuit if you can — even 1 round counts',
+    sub: 'One round takes 5 minutes. Tap below for the list.',
+    circuit: { rounds: 1, floor: state.body === 'floor' }
+  });
+
+  return recs;
+}
+
+function getWeekendDayRecs() {
   const p = state.phase;
   const depleted = (state.energy === 'low' || state.sleep === 'poor');
   const isProtect = (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF');
   const isSaturday = new Date().getDay() === 6;
   const recs = [];
 
-  // ── FOOD ──────────────────────────────────────────────────────────────
-  recs.push({ text: 'Breakfast: same protein habit as weekdays', sub: 'Skyr, eggs, or yogurt. Weekends are where the protein habit most often slips — keep it.' });
-
-  if (isSaturday) {
-    recs.push({ text: 'Saturday: swimming lesson morning — eat before you go', sub: 'Don\'t leave on an empty stomach. Something with protein takes 5 minutes and makes the morning significantly more manageable.' });
-  }
-
-  if (isProtect || state.mood === 'irritable' || state.mood === 'anxious') {
-    recs.push({ text: 'Lunch: protein-centred — not just snacking through the afternoon', sub: 'Weekends make it easy to graze rather than eat properly. A real lunch stabilises blood sugar and mood through the afternoon.' });
-  } else {
-    recs.push({ text: 'Lunch: proper meal, not grazing', sub: 'Keep the meal structure even without the bagel routine. Eggs, soup with protein, or leftovers all count.' });
-  }
-
-  // ── HYDRATION ─────────────────────────────────────────────────────────
-  recs.push({ text: 'Water before coffee — same as weekdays', sub: '300–500ml before anything else. Weekends are the most common day for this habit to slip.' });
-
-  if (isSaturday) {
-    recs.push({ text: 'Take a water bottle to the swimming lesson', sub: 'Pool environments are dehydrating for spectators too. Poolside time without water is a common source of weekend afternoon fatigue.' });
-  }
-
-  recs.push({ text: 'Caffeine cutoff: 2–3pm — same rule applies', sub: 'Rooibos or chamomile after this point. Weekends are when late coffee is most tempting and most disruptive.' });
-
-  // ── MOVEMENT ──────────────────────────────────────────────────────────
+  // Movement
   if (state.weekendMode === 'recovery') {
-    recs.push({ text: 'Movement goal today: 20 minutes total', sub: 'This doesn\'t need to be structured. Playing with your child, a short walk to the shops, walking between rooms — it accumulates. 20 min is the floor, not the target.' });
-  } else if (state.weekendWalk === 'child' || state.weekendWalk === 'solo') {
-    recs.push({ text: 'Movement goal today: 45 minutes minimum — your walk covers this', sub: 'If the walk doesn\'t happen, aim for 30 min of any movement across the day. Your weekend baseline of ~7000 steps is the target.' });
+    recs.push({ text: 'Active time goal: 20 minutes', sub: 'Playing, tidying, walking between rooms — it accumulates. No structured session needed.' });
   } else {
-    recs.push({ text: 'Movement goal today: 30 minutes across the day', sub: 'No single session needed. Accumulate it through normal activity — short walks, playing outside, taking stairs.' });
+    recs.push({ text: 'Active time goal: 45 minutes', sub: 'Softplay, swimming lesson, errands all count. If you\'ve been out with your child for an hour, you\'ve hit it.' });
   }
 
-  // Morning circuit
-  recs.push({ text: 'Morning circuit if you can — even 1 round is worth doing', sub: 'Weekends are when the circuit is easiest to skip. One round takes 5 minutes and keeps the habit alive.' });
-
-  // ── OVERSTIMULATION ───────────────────────────────────────────────────
+  // Saturday pool note
   if (isSaturday) {
-    recs.push({ text: 'Saturday: swimming lesson is a high-sensory environment', sub: 'Pool noise, echoing, crowding. If you feel flat or irritable afterward, that\'s sensory cost not mood failure. Build in 15–20 min of quiet before the next demand.' });
+    recs.push({ text: 'Take a water bottle to the swimming lesson', sub: 'Pool environments are dehydrating for spectators. Poolside without water is a common cause of afternoon fatigue.' });
+    recs.push({ text: 'After the pool: 15–20 min quiet before the next thing', sub: 'Pool noise and crowds have a sensory cost. Flat or irritable afterward is sensory load, not mood failure.' });
   }
 
-  if (isProtect || depleted) {
-    recs.push({ text: 'Protect at least one hour of low-stimulation time today', sub: 'This means genuinely quiet — not switching from one screen to another. Reading, sitting outside, or simply doing nothing counts.' });
+  // Lunch
+  if (isProtect || state.mood === 'irritable' || state.mood === 'anxious') {
+    recs.push({ text: 'Lunch: protein-centred — not just snacking', sub: 'Weekends make it easy to graze. A real lunch stabilises blood sugar and mood through the afternoon.' });
   } else {
-    recs.push({ text: 'Build in a quiet window this afternoon', sub: 'Even 30 minutes without input — phone down, low noise — reduces the cumulative sensory load of a busy weekend day.' });
+    recs.push({ text: 'Lunch: proper meal, not grazing', sub: 'Eggs, soup with protein, or leftovers. Drink a full glass of water with it.' });
   }
 
-  recs.push({ text: 'Phone down during meals and child\'s bedtime routine', sub: 'The transition from the day to the evening is where overstimulation most commonly accumulates. Protecting it reduces the time it takes to wind down later.' });
+  // Screentime
+  recs.push({ text: 'Phone down during meals and your child\'s activities', sub: 'Meals, playtime, and any activity you\'re doing together are the three most valuable phone-free windows.' });
+
+  if (!isProtect && !depleted) {
+    recs.push({ text: 'Set a phone-free window this afternoon — 30 minutes', sub: 'Passive scrolling increases cognitive load without providing recovery.' });
+  }
+
+  // Caffeine cutoff
+  recs.push({ text: 'Caffeine cutoff: 2–3pm — same rule as weekdays', sub: 'Rooibos or chamomile after this point.' });
+
+  return recs;
+}
+
+function getWeekendEveningRecs() {
+  const p = state.phase;
+  const depleted = (state.energy === 'low' || state.sleep === 'poor');
+  const isProtect = (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF');
+  const recs = [];
+
+  // Sleep
+  if (isProtect) {
+    recs.push({ text: 'Be in bed by 10pm tonight', sub: 'Set a 9:15pm alarm labelled "start winding down." No screens after 9:30pm.' });
+  } else {
+    recs.push({ text: 'Aim for your usual bedtime — within 30 minutes', sub: 'Weekend sleep drift is one of the most common sources of Monday fatigue.' });
+  }
+
+  // Quiet time after child's bedtime
+  if (isProtect || depleted) {
+    recs.push({ text: 'No phone for the first 30 minutes after your child is in bed', sub: 'This is your decompression window. Sit with tea, read, or do nothing.' });
+    recs.push({ text: 'Protect one hour of genuinely low-stimulation time', sub: 'Not switching from one screen to another. Reading or sitting quietly counts.' });
+  } else {
+    recs.push({ text: 'Phone down once your child is in bed — 30 minutes minimum', sub: 'The transition to your own evening is easier without immediately picking up the phone.' });
+  }
+
+  // Supplements
+  recs.push({ text: '☀️ Multivitamin taken today?', sub: 'Easy to forget at weekends without the work routine.' });
+  recs.push({ text: '🌙 Magnesium glycinate 200–400mg — take now', sub: '30–60 min before sleep. Every evening including weekends.' });
+
+  // Reading
+  const difficulty = getDifficultyScore();
+  if (difficulty === 'hard' || p === 'earlyF_vulnerable') {
+    recs.push({ text: 'Read before bed — book or Kindle only', sub: '10–15 min is enough. Phone stays out of the bedroom.' });
+  } else {
+    recs.push({ text: '20–30 min reading before bed — book or Kindle', sub: 'Put your phone in another room before you start.' });
+  }
 
   return recs;
 }
@@ -929,9 +923,9 @@ function buildRecs() {
   }
 
   if (state.isWeekend) {
-    const weekendRecs = getWeekendRecs();
-    html += buildSection('Weekend', '🌿', weekendRecs, showSubs);
-    html += buildSection('This evening', '📖', getEveningRecs(), showSubs);
+    html += buildSection('Morning', '🌅', getWeekendMorningRecs(), showSubs);
+    html += buildSection('Rest of day', '☀️', getWeekendDayRecs(), showSubs);
+    html += buildSection('Evening', '🌙', getWeekendEveningRecs(), showSubs);
   } else {
     html += buildSection('Movement', '🏃', movement, showSubs);
     html += buildSection('Food', '🥗', food, showSubs);
@@ -940,41 +934,43 @@ function buildRecs() {
     html += buildSection('This evening', '📖', getEveningRecs(), showSubs);
   }
 
-  // Supplements — compact on hard days
-  if (difficulty === 'hard') {
-    const s1 = 'ri-' + (++recItemCount);
-    const s2 = 'ri-' + (++recItemCount);
-    html += `<div class="card" style="padding:14px 16px;">
-      <div class="rec-title" style="margin-bottom:10px;">Supplements</div>
-      <div class="rec-item" id="${s1}" onclick="toggleDone('${s1}')" style="border-bottom:1px solid var(--surface2);">
-        <div class="rec-check"></div>
-        <div class="rec-text" style="font-size:13px;">☀️ Multivitamin with breakfast</div>
-      </div>
-      <div class="rec-item" id="${s2}" onclick="toggleDone('${s2}')">
-        <div class="rec-check"></div>
-        <div class="rec-text" style="font-size:13px;">🌙 Magnesium glycinate 200–400mg this evening</div>
-      </div>
-    </div>`;
-  } else {
-    const s1 = 'ri-' + (++recItemCount);
-    const s2 = 'ri-' + (++recItemCount);
-    html += `<div class="supplement-card">
-      <div class="rec-title" style="margin-bottom:12px;">Daily supplements</div>
-      <div class="rec-item" id="${s1}" onclick="toggleDone('${s1}')" style="border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:10px; margin-bottom:2px;">
-        <div class="rec-check"></div>
-        <div>
-          <div class="rec-text">☀️ Multivitamin — with breakfast</div>
-          ${showSubs ? `<div class="rec-sub">Take with food. Biotin, vitamin D3, B6.</div>` : ''}
+  // Supplements — weekdays only (weekends handled inside getWeekendEveningRecs)
+  if (!state.isWeekend) {
+    if (difficulty === 'hard') {
+      const s1 = 'ri-' + (++recItemCount);
+      const s2 = 'ri-' + (++recItemCount);
+      html += `<div class="card" style="padding:14px 16px;">
+        <div class="rec-title" style="margin-bottom:10px;">Supplements</div>
+        <div class="rec-item" id="${s1}" onclick="toggleDone('${s1}')" style="border-bottom:1px solid var(--surface2);">
+          <div class="rec-check"></div>
+          <div class="rec-text" style="font-size:13px;">☀️ Multivitamin with breakfast</div>
         </div>
-      </div>
-      <div class="rec-item" id="${s2}" onclick="toggleDone('${s2}')">
-        <div class="rec-check"></div>
-        <div>
-          <div class="rec-text">🌙 Magnesium glycinate 200–400mg — this evening</div>
-          ${showSubs ? `<div class="rec-sub">30–60 min before wind-down, every evening.</div>` : ''}
+        <div class="rec-item" id="${s2}" onclick="toggleDone('${s2}')">
+          <div class="rec-check"></div>
+          <div class="rec-text" style="font-size:13px;">🌙 Magnesium glycinate 200–400mg this evening</div>
         </div>
-      </div>
-    </div>`;
+      </div>`;
+    } else {
+      const s1 = 'ri-' + (++recItemCount);
+      const s2 = 'ri-' + (++recItemCount);
+      html += `<div class="supplement-card">
+        <div class="rec-title" style="margin-bottom:12px;">Daily supplements</div>
+        <div class="rec-item" id="${s1}" onclick="toggleDone('${s1}')" style="border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:10px; margin-bottom:2px;">
+          <div class="rec-check"></div>
+          <div>
+            <div class="rec-text">☀️ Multivitamin — with breakfast</div>
+            ${showSubs ? `<div class="rec-sub">Take with food. Biotin, vitamin D3, B6.</div>` : ''}
+          </div>
+        </div>
+        <div class="rec-item" id="${s2}" onclick="toggleDone('${s2}')">
+          <div class="rec-check"></div>
+          <div>
+            <div class="rec-text">🌙 Magnesium glycinate 200–400mg — this evening</div>
+            ${showSubs ? `<div class="rec-sub">30–60 min before wind-down, every evening.</div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }
   }
 
   html += `<div class="export-row">

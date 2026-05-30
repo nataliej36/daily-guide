@@ -627,55 +627,92 @@ function getMovementRecs() {
     }
   }
 
-  // ── 4. EVENING YOGA ──────────────────────────────────────────────────
-  // YWA links mapped to phase and difficulty
-  const ywaVideos = {
-    hardOrVulnerable: {
-      title: 'Yoga with Adriene: Wind Down — 12 min',
-      url: 'https://www.youtube.com/watch?v=BiWDsfZ3zbo',
-      desc: 'Entirely floor-based. Open it, press play, follow along. No decisions required.'
-    },
-    protect: {
-      title: 'Yoga with Adriene: Yoga to Slow Your Roll — 16 min',
-      url: 'https://www.youtube.com/watch?v=HtSSMx-LbQ4',
-      desc: 'Restorative and gentle. Good for the luteal and early follicular phases — softens the day without demanding anything from you.'
-    },
-    ovulation: {
-      title: 'Yoga with Adriene: Quick Restorative Yin — 15 min',
-      url: 'https://www.youtube.com/watch?v=nylNjxeOeSw',
-      desc: 'Brief restorative yin. Bring a blanket. Energy beginning to taper — this signals the transition.'
-    },
-    midF: {
-      title: 'Yoga with Adriene: Evening Flow — search on YouTube',
-      url: 'https://www.youtube.com/results?search_query=yoga+with+adriene+evening+flow+20+minutes',
-      desc: 'Your highest-capacity window — a 20–30 min gentle vinyasa is appropriate and won\'t disrupt sleep. Search "Yoga with Adriene evening flow" and pick one that looks good. Anything 20–30 min is right.'
-    },
-    menstrual: {
-      title: 'Yoga with Adriene: Yoga to Slow Your Roll — 16 min',
-      url: 'https://www.youtube.com/watch?v=HtSSMx-LbQ4',
-      desc: 'Restorative flow. Matches the relief-window energy — gentle movement without demand.'
-    }
-  };
+  // ── 4. EVENING — see getEveningRecs() ───────────────────────────────
 
+  return recs;
+}
+
+// ── EVENING RECS (reading) ────────────────────────────────────────────
+function getEveningRecs() {
+  const p = state.phase;
   const difficulty = getDifficultyScore();
-  let video;
+  const isProtect = (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF');
+  const recs = [];
+
   if (difficulty === 'hard' || p === 'earlyF_vulnerable') {
-    video = ywaVideos.hardOrVulnerable;
-  } else if (p === 'luteal' || p === 'earlyF') {
-    video = ywaVideos.protect;
-  } else if (p === 'ovulation') {
-    video = ywaVideos.ovulation;
-  } else if (p === 'midF') {
-    video = ywaVideos.midF;
+    recs.push({
+      text: 'Read before bed — physical book or Kindle only',
+      sub: '10–15 min is enough. Provides absorption without social demand. Phone stays out of the bedroom.'
+    });
+  } else if (isProtect) {
+    recs.push({
+      text: '20–30 min reading before bed — book or Kindle',
+      sub: 'Put your phone in another room before you start. This is your wind-down anchor tonight.'
+    });
   } else {
-    video = ywaVideos.menstrual;
+    recs.push({
+      text: 'Read before sleep — book or Kindle, not your phone',
+      sub: 'Even 15–20 min improves sleep onset. No doomscrolling as a substitute.'
+    });
   }
 
-  recs.push({
-    text: `Evening (8pm): ${video.title}`,
-    sub: `${video.desc} → <a href="${video.url}" target="_blank" style="color:var(--accent); text-decoration:underline;">Open on YouTube</a>`,
-    isLink: true
-  });
+  return recs;
+}
+
+// ── WEEKEND RECS ─────────────────────────────────────────────────────
+function getWeekendRecs() {
+  const p = state.phase;
+  const depleted = (state.energy === 'low' || state.sleep === 'poor');
+  const isProtect = (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF');
+  const isSaturday = new Date().getDay() === 6;
+  const recs = [];
+
+  // ── FOOD ──────────────────────────────────────────────────────────────
+  recs.push({ text: 'Breakfast: same protein habit as weekdays', sub: 'Skyr, eggs, or yogurt. Weekends are where the protein habit most often slips — keep it.' });
+
+  if (isSaturday) {
+    recs.push({ text: 'Saturday: swimming lesson morning — eat before you go', sub: 'Don\'t leave on an empty stomach. Something with protein takes 5 minutes and makes the morning significantly more manageable.' });
+  }
+
+  if (isProtect || state.mood === 'irritable' || state.mood === 'anxious') {
+    recs.push({ text: 'Lunch: protein-centred — not just snacking through the afternoon', sub: 'Weekends make it easy to graze rather than eat properly. A real lunch stabilises blood sugar and mood through the afternoon.' });
+  } else {
+    recs.push({ text: 'Lunch: proper meal, not grazing', sub: 'Keep the meal structure even without the bagel routine. Eggs, soup with protein, or leftovers all count.' });
+  }
+
+  // ── HYDRATION ─────────────────────────────────────────────────────────
+  recs.push({ text: 'Water before coffee — same as weekdays', sub: '300–500ml before anything else. Weekends are the most common day for this habit to slip.' });
+
+  if (isSaturday) {
+    recs.push({ text: 'Take a water bottle to the swimming lesson', sub: 'Pool environments are dehydrating for spectators too. Poolside time without water is a common source of weekend afternoon fatigue.' });
+  }
+
+  recs.push({ text: 'Caffeine cutoff: 2–3pm — same rule applies', sub: 'Rooibos or chamomile after this point. Weekends are when late coffee is most tempting and most disruptive.' });
+
+  // ── MOVEMENT ──────────────────────────────────────────────────────────
+  if (state.weekendMode === 'recovery') {
+    recs.push({ text: 'Movement goal today: 20 minutes total', sub: 'This doesn\'t need to be structured. Playing with your child, a short walk to the shops, walking between rooms — it accumulates. 20 min is the floor, not the target.' });
+  } else if (state.weekendWalk === 'child' || state.weekendWalk === 'solo') {
+    recs.push({ text: 'Movement goal today: 45 minutes minimum — your walk covers this', sub: 'If the walk doesn\'t happen, aim for 30 min of any movement across the day. Your weekend baseline of ~7000 steps is the target.' });
+  } else {
+    recs.push({ text: 'Movement goal today: 30 minutes across the day', sub: 'No single session needed. Accumulate it through normal activity — short walks, playing outside, taking stairs.' });
+  }
+
+  // Morning circuit
+  recs.push({ text: 'Morning circuit if you can — even 1 round is worth doing', sub: 'Weekends are when the circuit is easiest to skip. One round takes 5 minutes and keeps the habit alive.' });
+
+  // ── OVERSTIMULATION ───────────────────────────────────────────────────
+  if (isSaturday) {
+    recs.push({ text: 'Saturday: swimming lesson is a high-sensory environment', sub: 'Pool noise, echoing, crowding. If you feel flat or irritable afterward, that\'s sensory cost not mood failure. Build in 15–20 min of quiet before the next demand.' });
+  }
+
+  if (isProtect || depleted) {
+    recs.push({ text: 'Protect at least one hour of low-stimulation time today', sub: 'This means genuinely quiet — not switching from one screen to another. Reading, sitting outside, or simply doing nothing counts.' });
+  } else {
+    recs.push({ text: 'Build in a quiet window this afternoon', sub: 'Even 30 minutes without input — phone down, low noise — reduces the cumulative sensory load of a busy weekend day.' });
+  }
+
+  recs.push({ text: 'Phone down during meals and child\'s bedtime routine', sub: 'The transition from the day to the evening is where overstimulation most commonly accumulates. Protecting it reduces the time it takes to wind down later.' });
 
   return recs;
 }
@@ -891,10 +928,17 @@ function buildRecs() {
     }
   }
 
-  html += buildSection('Movement', '🏃', movement, showSubs);
-  html += buildSection('Food', '🥗', food, showSubs);
-  html += buildSection('Hydration', '💧', hydration, showSubs);
-  html += buildSection('Recovery', '🌙', recovery, showSubs);
+  if (state.isWeekend) {
+    const weekendRecs = getWeekendRecs();
+    html += buildSection('Weekend', '🌿', weekendRecs, showSubs);
+    html += buildSection('This evening', '📖', getEveningRecs(), showSubs);
+  } else {
+    html += buildSection('Movement', '🏃', movement, showSubs);
+    html += buildSection('Food', '🥗', food, showSubs);
+    html += buildSection('Hydration', '💧', hydration, showSubs);
+    html += buildSection('Recovery', '🌙', recovery, showSubs);
+    html += buildSection('This evening', '📖', getEveningRecs(), showSubs);
+  }
 
   // Supplements — compact on hard days
   if (difficulty === 'hard') {

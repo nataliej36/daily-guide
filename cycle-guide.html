@@ -608,6 +608,188 @@ function getEveningRecs() {
   return recs;
 }
 
+// ── WEEKDAY RECS — split by time of day ──────────────────────────────
+function getWeekdayMorningRecs() {
+  const p = state.phase;
+  const morningMode = getMorningMode();
+  const recs = [];
+
+  // Hydration
+  recs.push({
+    text: 'Water — 500ml before or with breakfast',
+    sub: 'Leave a glass by the kettle the night before. Drink it before you make coffee.'
+  });
+
+  // Supplement
+  recs.push({
+    text: '☀️ Multivitamin — with breakfast',
+    sub: 'Take with food. Biotin, vitamin D3, B6.'
+  });
+
+  // Food
+  if (p === 'luteal') {
+    recs.push({ text: 'Breakfast: protein first — even if appetite is low', sub: 'Skyr or eggs. Blood sugar stability is especially important in the luteal phase.' });
+  } else {
+    recs.push({ text: 'Breakfast: ~20g protein before or with your coffee', sub: 'Skyr, Greek yogurt, eggs, or protein shake.' });
+  }
+
+  // Movement
+  if (morningMode === 'floor') {
+    recs.push({
+      text: 'Morning: floor circuit — 8 minutes',
+      sub: 'Stay on the mat throughout. Tap the list below.',
+      circuit: { rounds: 1, floor: true }
+    });
+  } else if (morningMode === 'standing_full') {
+    recs.push({
+      text: 'Morning: standing circuit — 3 rounds, 12–15 minutes',
+      sub: 'Your highest-capacity phase. Rest 60 seconds between rounds. Tap the list below.',
+      circuit: { rounds: 3, floor: false }
+    });
+  } else {
+    recs.push({
+      text: 'Morning: standing circuit — 2 rounds, 10 minutes',
+      sub: 'Rest 60 seconds between rounds. Tap the list below.',
+      circuit: { rounds: 2, floor: false }
+    });
+  }
+
+  return recs;
+}
+
+function getWeekdayLunchRecs() {
+  const p = state.phase;
+  const isProtect = (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF');
+  const recs = [];
+
+  // Food
+  if (isProtect || state.mood === 'irritable' || state.mood === 'anxious') {
+    recs.push({ text: 'Don\'t go more than 4 hours between meals today', sub: 'Set a phone reminder if you tend to push through. Blood sugar drops make irritability and anxiety worse within 20–30 minutes.' });
+    recs.push({ text: 'Lunch: bagel build as usual — eat it before 1pm', sub: 'Don\'t skip or reduce it. The protein and carb combination is right for blood sugar stability.' });
+  } else {
+    recs.push({ text: 'Lunch: bagel build — ~30g protein, nothing to add', sub: 'Eat at a consistent time. Add edamame or cucumber if you\'re hungry.' });
+  }
+
+  // Hydration
+  recs.push({ text: 'Drink a full glass of water with lunch', sub: 'Refill your bottle at the same time — 400–500ml through the afternoon.' });
+
+  // Post-lunch walk
+  const depleted = (state.energy === 'low' || state.sleep === 'poor');
+  if (depleted || p === 'earlyF_vulnerable') {
+    recs.push({ text: 'Post-lunch: 10 min walk, flat route', sub: 'Even 10 min significantly reduces the post-meal glucose rise.' });
+  } else {
+    recs.push({ text: 'Post-lunch: 15–20 min brisk walk', sub: 'Leave your phone in your pocket for the first 10 min if you can.' });
+  }
+
+  return recs;
+}
+
+function getWeekdayAfternoonRecs() {
+  const p = state.phase;
+  const depleted = (state.energy === 'low' || state.sleep === 'poor');
+  const isProtect = (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF');
+  const isHighCap = (p === 'midF');
+  const recs = [];
+
+  // Hydration / caffeine
+  recs.push({
+    text: 'Caffeine cutoff: 2–3pm — tea included',
+    sub: 'Half-life is 5–7 hours regardless of source. Rooibos or chamomile after this point.'
+  });
+
+  // Phase-specific fluid target
+  if (p === 'luteal' || p === 'earlyF_vulnerable') {
+    recs.push({ text: 'Total fluids today: 2–2.5L', sub: 'Progesterone affects fluid regulation. Headaches or heightened fatigue can partly reflect mild dehydration.' });
+  } else if (isHighCap) {
+    recs.push({ text: 'Total fluids today: ~1.8–2.2L', sub: 'Pale straw-coloured urine by mid-afternoon is the practical indicator.' });
+  } else {
+    recs.push({ text: 'Total fluids today: ~1.8–2L', sub: 'Pale straw-coloured urine by mid-afternoon is the practical indicator.' });
+  }
+
+  // Monday session
+  if (state.isMonday && state.mondaySession) {
+    if (state.mondaySession === 'swim') {
+      recs.push({ text: 'Before your swim: 300–400ml in the hour beforehand', sub: 'Sip rather than gulp. Rehydrate with 400–500ml immediately after.' });
+      if (depleted && isProtect) {
+        recs.push({ text: 'Swim: restorative — 20–25 min, easy lengths only', sub: 'End early if you feel worse after 10 min.' });
+      } else if (isHighCap && !depleted) {
+        recs.push({ text: 'Swim: push session — 35–45 min', sub: '4×50m at pace with easy recovery lengths between.' });
+      } else if (isProtect) {
+        recs.push({ text: 'Swim: steady restorative — 25–30 min', sub: 'Finish feeling calmer than you arrived.' });
+      } else {
+        recs.push({ text: 'Swim: moderate — 30–35 min', sub: 'Finish feeling better than you started.' });
+      }
+    } else {
+      recs.push({ text: 'Before the gym: 300–400ml in the hour beforehand', sub: 'Carry water on the treadmill. Rehydrate with 400–500ml after.' });
+      if (depleted || p === 'earlyF_vulnerable') {
+        recs.push({ text: 'Gym: incline walk — recovery', sub: '3–5% incline, 3.0–3.2 mph, 25 min. HR below 120 bpm.' });
+      } else if (p === 'luteal') {
+        recs.push({ text: 'Gym: incline walk — moderate', sub: '6–8% incline, 3.2–3.5 mph, 30 min. HR 120–135.' });
+      } else if (p === 'menstrual' || p === 'earlyF') {
+        recs.push({ text: 'Gym: incline walk — building', sub: '8–10% incline, 3.3–3.6 mph, 30–35 min. HR 130–145.' });
+      } else if (isHighCap) {
+        recs.push({ text: 'Gym: incline walk — push', sub: '10–12% incline, 3.5–3.8 mph, 35–40 min. HR 140–155. Add 15–18% spikes if it feels good.' });
+      } else {
+        recs.push({ text: 'Gym: incline walk — standard', sub: '8–10% incline, 3.3–3.5 mph, 30–35 min. HR 130–145.' });
+      }
+      recs.push({ text: 'Before leaving: 2×10 bodyweight squats', sub: 'Takes 3 min. Adds bone-loading the treadmill doesn\'t provide.' });
+    }
+  }
+
+  // High load transition
+  if (state.load === 'high') {
+    recs.push({ text: 'Before you go inside after work: sit in the car for 5 minutes', sub: 'Engine off, phone down. Deliberate buffer between work mode and home mode.' });
+  }
+
+  return recs;
+}
+
+function getWeekdayEveningRecs() {
+  const p = state.phase;
+  const depleted = (state.energy === 'low' || state.sleep === 'poor');
+  const isProtect = (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF');
+  const difficulty = getDifficultyScore();
+  const recs = [];
+
+  // Recovery actions
+  if (p === 'luteal' || p === 'earlyF_vulnerable' || p === 'earlyF') {
+    recs.push({ text: 'Be in bed by 10pm tonight', sub: 'Set a 9:15pm alarm labelled "start winding down." No screens after 9:30pm — phone in another room.' });
+  } else {
+    recs.push({ text: 'Aim for the same bedtime as yesterday, within 30 minutes', sub: 'Set a 9:15pm reminder if that helps. Consistent timing matters more than total hours.' });
+  }
+
+  if (state.load === 'high') {
+    recs.push({ text: 'After bedtime: don\'t start a new task for 20 minutes', sub: 'Sit down, low light, something low-input. High-masking days require this as maintenance.' });
+  }
+
+  if (state.mood === 'anxious') {
+    recs.push({ text: 'If anxiety spikes: breathe in for 4 counts, out for 6–8 counts — repeat 5 times', sub: 'Use it at the first sign of escalation — before a meeting, in the car, not after you\'re already overwhelmed.' });
+    recs.push({ text: 'Use your CBT tools now, not after you\'re overwhelmed', sub: 'The hormonal component responds to the same techniques — the difference is timing.' });
+  }
+
+  if (p === 'earlyF_vulnerable' && (state.mood === 'low' || state.mood === 'anxious')) {
+    recs.push({ text: 'Don\'t make any decisions about your life today that you can defer', sub: 'Write things down to revisit on day 10. Your brain is generating assessments today it won\'t generate in 4–5 days.' });
+  }
+
+  if (state.load === 'high' || isProtect) {
+    recs.push({ text: 'After 8pm: remove one source of sensory input you don\'t need', sub: 'Pick one — background TV off, lamp instead of overhead light, comfortable clothes, quieter room.' });
+  }
+
+  // Supplements
+  recs.push({ text: '🌙 Magnesium glycinate 200–400mg — take now', sub: '30–60 min before wind-down, every evening.' });
+
+  // Reading
+  if (difficulty === 'hard' || p === 'earlyF_vulnerable') {
+    recs.push({ text: 'Read before bed — book or Kindle only', sub: '10–15 min is enough. Phone stays out of the bedroom.' });
+  } else if (isProtect) {
+    recs.push({ text: '20–30 min reading before bed — book or Kindle', sub: 'Put your phone in another room before you start.' });
+  } else {
+    recs.push({ text: 'Read before sleep — book or Kindle, not your phone', sub: 'Even 15–20 min improves sleep onset.' });
+  }
+
+  return recs;
+}
+
 // ── WEEKEND RECS — split by time of day ──────────────────────────────
 function getWeekendMorningRecs() {
   const p = state.phase;
@@ -880,11 +1062,7 @@ function buildRecs() {
   recItemCount = 0;
   const pi = phaseInfo[state.phase] || phaseInfo.luteal;
   const difficulty = getDifficultyScore();
-  const showSubs = true; // sub-text is now consistently one sentence — always show
-  const movement = getMovementRecs();
-  const food = getFoodRecs();
-  const hydration = getHydrationRecs();
-  const recovery = getRecoveryRecs();
+  const showSubs = true;
 
   let html = '<div class="fade-in">';
 
@@ -927,50 +1105,10 @@ function buildRecs() {
     html += buildSection('Rest of day', '☀️', getWeekendDayRecs(), showSubs);
     html += buildSection('Evening', '🌙', getWeekendEveningRecs(), showSubs);
   } else {
-    html += buildSection('Movement', '🏃', movement, showSubs);
-    html += buildSection('Food', '🥗', food, showSubs);
-    html += buildSection('Hydration', '💧', hydration, showSubs);
-    html += buildSection('Recovery', '🌙', recovery, showSubs);
-    html += buildSection('This evening', '📖', getEveningRecs(), showSubs);
-  }
-
-  // Supplements — weekdays only (weekends handled inside getWeekendEveningRecs)
-  if (!state.isWeekend) {
-    if (difficulty === 'hard') {
-      const s1 = 'ri-' + (++recItemCount);
-      const s2 = 'ri-' + (++recItemCount);
-      html += `<div class="card" style="padding:14px 16px;">
-        <div class="rec-title" style="margin-bottom:10px;">Supplements</div>
-        <div class="rec-item" id="${s1}" onclick="toggleDone('${s1}')" style="border-bottom:1px solid var(--surface2);">
-          <div class="rec-check"></div>
-          <div class="rec-text" style="font-size:13px;">☀️ Multivitamin with breakfast</div>
-        </div>
-        <div class="rec-item" id="${s2}" onclick="toggleDone('${s2}')">
-          <div class="rec-check"></div>
-          <div class="rec-text" style="font-size:13px;">🌙 Magnesium glycinate 200–400mg this evening</div>
-        </div>
-      </div>`;
-    } else {
-      const s1 = 'ri-' + (++recItemCount);
-      const s2 = 'ri-' + (++recItemCount);
-      html += `<div class="supplement-card">
-        <div class="rec-title" style="margin-bottom:12px;">Daily supplements</div>
-        <div class="rec-item" id="${s1}" onclick="toggleDone('${s1}')" style="border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:10px; margin-bottom:2px;">
-          <div class="rec-check"></div>
-          <div>
-            <div class="rec-text">☀️ Multivitamin — with breakfast</div>
-            ${showSubs ? `<div class="rec-sub">Take with food. Biotin, vitamin D3, B6.</div>` : ''}
-          </div>
-        </div>
-        <div class="rec-item" id="${s2}" onclick="toggleDone('${s2}')">
-          <div class="rec-check"></div>
-          <div>
-            <div class="rec-text">🌙 Magnesium glycinate 200–400mg — this evening</div>
-            ${showSubs ? `<div class="rec-sub">30–60 min before wind-down, every evening.</div>` : ''}
-          </div>
-        </div>
-      </div>`;
-    }
+    html += buildSection('Morning', '🌅', getWeekdayMorningRecs(), showSubs);
+    html += buildSection('Lunchtime', '🥗', getWeekdayLunchRecs(), showSubs);
+    html += buildSection('Afternoon', '☀️', getWeekdayAfternoonRecs(), showSubs);
+    html += buildSection('Evening', '🌙', getWeekdayEveningRecs(), showSubs);
   }
 
   html += `<div class="export-row">
